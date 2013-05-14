@@ -15,6 +15,8 @@
 		22308F9D174117AA009E511C /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 22308F9B174117AA009E511C /* MainMenu.xib */; };
 		22308FA5174117CD009E511C /* TKGearView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 22308FA4174117CD009E511C /* TKGearView.mm */; };
 		22308FB9174193EA009E511C /* gear.icns in Resources */ = {isa = PBXBuildFile; fileRef = 22308FB8174193EA009E511C /* gear.icns */; };
+		22DEED2D17427CF2009037D2 /* gear_icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 22DEED2B17427CF2009037D2 /* gear_icon.png */; };
+		22DEED3017427DAB009037D2 /* rack_icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 22DEED2F17427DAB009037D2 /* rack_icon.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +37,8 @@
 		22308FA4174117CD009E511C /* TKGearView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TKGearView.mm; sourceTree = "<group>"; };
 		22308FB11741411D009E511C /* ofxVec2f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxVec2f.h; sourceTree = "<group>"; };
 		22308FB8174193EA009E511C /* gear.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = gear.icns; sourceTree = "<group>"; };
+		22DEED2B17427CF2009037D2 /* gear_icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gear_icon.png; sourceTree = "<group>"; };
+		22DEED2F17427DAB009037D2 /* rack_icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = rack_icon.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +56,8 @@
 		22308F7A174117A9009E511C = {
 			isa = PBXGroup;
 			children = (
+				22DEED2F17427DAB009037D2 /* rack_icon.png */,
+				22DEED2B17427CF2009037D2 /* gear_icon.png */,
 				22308FB8174193EA009E511C /* gear.icns */,
 				22308FA61741411D009E511C /* vectorMath */,
 				22308F8C174117A9009E511C /* GearMaker */,
@@ -185,6 +191,8 @@
 				22308F97174117A9009E511C /* Credits.rtf in Resources */,
 				22308F9D174117AA009E511C /* MainMenu.xib in Resources */,
 				22308FB9174193EA009E511C /* gear.icns in Resources */,
+				22DEED2D17427CF2009037D2 /* gear_icon.png in Resources */,
+				22DEED3017427DAB009037D2 /* rack_icon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

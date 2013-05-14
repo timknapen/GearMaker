@@ -12,9 +12,9 @@
 {
 }
 @property NSPoint centerp;
-@property (strong)	NSTextView * dimensionView;
+@property (strong) NSTextView * dimensionView;
 @property (strong) NSTextView * pitchRadiusView;
-
+@property (strong) NSTextView * rackInfoView;
 
 - (NSBezierPath *) involuteRackWithTeeth:(int)numTeeth
 								   pitch:(float)circularPitch
@@ -24,6 +24,7 @@
 - (NSBezierPath *) involuteGearWithTeeth:(int)numTeeth
 						   circularPitch:(float)circularPitch
 						   pressureAngle:(float)pressureAngle
-							   clearance:(float)clearance;
+							   clearance:(float)clearance
+						   underCutAngle:(float)underCutAngle;
 
 @end

@@ -22,6 +22,7 @@
 @property int gearTeeth;
 @property float	gearClearance;
 @property float gearHoleDiam;
+@property float gearUnderCut;
 @property float scale;
 @property float rotation;
 

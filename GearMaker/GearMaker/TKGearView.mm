@@ -12,27 +12,35 @@
 
 @implementation TKGearView
 @synthesize centerp;
-@synthesize dimensionView, pitchRadiusView;
+@synthesize dimensionView, pitchRadiusView, rackInfoView;
 
 - (id)initWithFrame:(NSRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
-		dimensionView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 1, 600, 10)];
+		self.dimensionView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 1, 600, 10)];
 		[dimensionView setFont:[NSFont systemFontOfSize:11]];
 		[dimensionView setSelectable:NO];
 		[dimensionView setDrawsBackground:NO];
 		[dimensionView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f]];
 		[dimensionView setString: @"10mm"];
-
-		pitchRadiusView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 500, 10)];
+		
+		self.pitchRadiusView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 500, 10)];
 		[pitchRadiusView setFont:[NSFont systemFontOfSize:11]];
 		[pitchRadiusView setSelectable:NO];
 		[pitchRadiusView setDrawsBackground:NO];
 		[pitchRadiusView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f]];
 		
+		self.rackInfoView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 500, 10)];
+		[rackInfoView setFont:[NSFont systemFontOfSize:11]];
+		[rackInfoView setSelectable:NO];
+		[rackInfoView setDrawsBackground:NO];
+		[rackInfoView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f]];
+
+		
 		[self addSubview:dimensionView];
 		[self addSubview:pitchRadiusView];
+		[self addSubview:rackInfoView];
 		centerp = NSMakePoint(0, 0);
 		[self setAcceptsTouchEvents:YES];
     }
@@ -72,7 +80,11 @@
 	NSAffineTransform * motion = [NSAffineTransform transform];
 	[motion translateXBy: -((appDel.rackTeeth-1-0.75f) * appDel.pitch) + pitchRadius* (M_PI * appDel.rotation/ 180.0f) yBy:-pitchRadius];
 	
-	
+	[rackInfoView setString:[NSString stringWithFormat:@"%.2fmm", appDel.rackTeeth * appDel.pitch]];
+	[rackInfoView setFrameOrigin: NSMakePoint( self.frame.size.width/2
+											  + fscale * ( (1+0.75f)*appDel.pitch + pitchRadius * (M_PI * appDel.rotation/ 180.0f))+centerp.x,
+											  self.frame.size.height/2 - fscale*pitchRadius + centerp.y)];
+
 	
 	NSAffineTransform * translation = [NSAffineTransform transform];
 	[translation translateXBy:self.frame.size.width/2 yBy:self.frame.size.height/2];
@@ -85,23 +97,45 @@
 	
 	// reference sizes
 	NSBezierPath * pitchCircle = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(-pitchRadius, -pitchRadius, 2*pitchRadius, 2*pitchRadius)];
-	[pitchCircle moveToPoint:NSMakePoint(-1, 0)];
-	[pitchCircle lineToPoint:NSMakePoint(1, 0)];
-	[pitchCircle moveToPoint:NSMakePoint(0, -1)];
-	[pitchCircle lineToPoint:NSMakePoint(0, 1)];
+	for(int i = 0; i <= (int)pitchRadius; i++){
+		[pitchCircle moveToPoint:NSMakePoint(i, .5)];
+		[pitchCircle lineToPoint:NSMakePoint(i, -.5)];
+		[pitchCircle moveToPoint:NSMakePoint(-i, .5)];
+		[pitchCircle lineToPoint:NSMakePoint(-i, -.5)];
+		[pitchCircle moveToPoint:NSMakePoint(.5, i)];
+		[pitchCircle lineToPoint:NSMakePoint(-.5, i)];
+		[pitchCircle moveToPoint:NSMakePoint(.5, -i)];
+		[pitchCircle lineToPoint:NSMakePoint(-.5, -i)];
+	}
+	[pitchCircle moveToPoint:NSMakePoint(0, -pitchRadius)];
+	[pitchCircle lineToPoint:NSMakePoint(0, pitchRadius)];
+	[pitchCircle moveToPoint:NSMakePoint( -pitchRadius, 0)];
+	[pitchCircle lineToPoint:NSMakePoint( pitchRadius, 0)];
 	[pitchCircle transformUsingAffineTransform:scaler];
 	[pitchCircle transformUsingAffineTransform:translation];
 	[pitchCircle setLineWidth:0.5f];
-
+	
+	NSBezierPath * rackInfo = [NSBezierPath bezierPath];
+	[rackInfo moveToPoint:NSMakePoint(0, -1)];
+	[rackInfo lineToPoint:NSMakePoint(0, 1)];
+	[rackInfo moveToPoint:NSMakePoint(0, 0)];
+	[rackInfo lineToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, 0)];
+	[rackInfo moveToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, -1)];
+	[rackInfo lineToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, 1)];
+	
+	
+	
 	NSBezierPath * refPath = [NSBezierPath bezierPathWithRect:NSMakeRect(1, 1, fscale*10, fscale*10)];
-
+	
 	
 	
 	// create a gear
 	NSBezierPath * gearPath = [self involuteGearWithTeeth:appDel.gearTeeth
 											circularPitch:appDel.pitch
 											pressureAngle:appDel.pressureAngle
-												clearance:appDel.gearClearance];
+												clearance:appDel.gearClearance
+											underCutAngle:appDel.gearUnderCut
+							   ];
 	// create the hole
 	NSBezierPath * holePath = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(-appDel.gearHoleDiam/2, -appDel.gearHoleDiam/2, appDel.gearHoleDiam, appDel.gearHoleDiam)];
 	holePath = [holePath bezierPathByReversingPath];
@@ -120,11 +154,20 @@
 	[rackPath transformUsingAffineTransform:motion];
 	[rackPath transformUsingAffineTransform:scaler];
 	[rackPath transformUsingAffineTransform:translation];
-
 	
-
+	[rackInfo transformUsingAffineTransform:motion];
+	[rackInfo transformUsingAffineTransform:scaler];
+	[rackInfo transformUsingAffineTransform:translation];
 	
-
+	
+	
+	
+	// ACTUAL DRAWING
+	
+	[[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f] set];
+	[refPath stroke];
+	[pitchCircle stroke];
+	[rackInfo stroke];
 	
 	[[NSColor colorWithCalibratedRed:1 green:.2f blue:.2f alpha:.7f] set];
 	[gearPath fill];
@@ -132,13 +175,12 @@
 	[[NSColor colorWithCalibratedRed:0 green:.6f blue:0 alpha:.7f] set];
 	[rackPath fill];
 	
-	[[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f] set];
-	[refPath stroke];
-	[pitchCircle stroke];
+	
 	
 }
 
-
+#pragma mark -
+#pragma mark GEARS
 - (NSBezierPath *)involuteRackWithTeeth:(int)numTeeth
 								  pitch:(float)circularPitch
 						  pressureAngle:(float)pressureAngle
@@ -154,7 +196,7 @@
 	ofxVec2f pt;
 	
 	[rackPath moveToPoint:NSMakePoint(0, -2*dedendum)];
-
+	
 	for(int i =0; i < numTeeth; i++){
 		float xpos = (float)i * circularPitch;
 		pt = ofxVec2f( xpos + 0, 0) + deden.getRotated(pressureAngle);
@@ -187,7 +229,10 @@
 						  circularPitch:(float)circularPitch
 						  pressureAngle:(float)pressureAngle
 							  clearance:(float)clearance
+						  underCutAngle:(float)underCutAngle
 {
+	underCutAngle *= DEG_TO_RAD;
+
 	float addendum = (float) circularPitch / M_PI;
 	float dedendum = addendum + clearance;
 	
@@ -205,22 +250,21 @@
 	float diffangle = angle_at_pitchcircle - atan(angle_at_pitchcircle);
 	float angularToothWidthAtBase = M_PI / numTeeth + 2.0 * diffangle;
 	
-
+	
 	int resolution = 10;
 	
 	NSBezierPath * teeth = [NSBezierPath bezierPath];
 	ofxVec2f vec;
 	float rot =  M_PI -angularToothWidthAtBase/2;
 	vec = ofxVec2f(0, rootRadius);
-	vec.rotateRad(rot );
+	vec.rotateRad(rot + underCutAngle );
 	[teeth moveToPoint:NSMakePoint(vec.x, vec.y)];
 	
 	for(int a = 0; a < numTeeth; a++){
 		rot = M_PI -angularToothWidthAtBase/2 + (float) a * 2 * M_PI / (float)numTeeth;
 		
-		
 		vec = ofxVec2f(0, rootRadius);
-		vec.rotateRad(rot);
+		vec.rotateRad(rot + underCutAngle);
 		[teeth lineToPoint:NSMakePoint(vec.x, vec.y)];
 		
 		
@@ -248,7 +292,7 @@
 		
 		
 		vec = ofxVec2f(0, rootRadius).getRotatedRad(angularToothWidthAtBase);
-		vec.rotateRad(rot );
+		vec.rotateRad(rot - underCutAngle );
 		[teeth lineToPoint:NSMakePoint(vec.x, vec.y)];
 		
 		
@@ -259,6 +303,8 @@
 	
 }
 
+#pragma mark -
+#pragma mark PRINTING
 
 - (void)print:(id)sender{
 	TKAppDelegate * appDel =  [[NSApplication sharedApplication] delegate];
@@ -273,9 +319,13 @@
 }
 
 
+#pragma mark -
+#pragma mark EVENTS
+
+
 - (void)magnifyWithEvent:(NSEvent *)event{
 	TKAppDelegate * appDel =  [[NSApplication sharedApplication] delegate];
-
+	
 	NSSize newSize;
     newSize.height = self.frame.size.height * ([event magnification] + 1.0);
     newSize.width = self.frame.size.width * ([event magnification] + 1.0);

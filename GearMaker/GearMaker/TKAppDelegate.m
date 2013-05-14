@@ -10,7 +10,7 @@
 
 @implementation TKAppDelegate
 @synthesize gearView;
-@synthesize pitch, rackClearance, pressureAngle, rackTeeth, gearTeeth, gearClearance, gearHoleDiam, scale, rotation;
+@synthesize pitch, rackClearance, pressureAngle, rackTeeth, gearTeeth, gearClearance, gearHoleDiam, scale, rotation, gearUnderCut;
 
 - (void)awakeFromNib{
 	self.pitch = 8;
@@ -23,6 +23,7 @@
 	self.gearHoleDiam = 5;
 	self.scale = 2;
 	self.rotation = 0;
+	self.gearUnderCut = 0;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
