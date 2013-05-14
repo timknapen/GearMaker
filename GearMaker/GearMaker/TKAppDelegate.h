@@ -13,16 +13,23 @@
 @property (assign) IBOutlet NSWindow *window;
 @property (weak) IBOutlet TKGearView *gearView;
 
+
+// GENERAL
 @property float pitch;
 @property float pressureAngle;
 
+// RACK
 @property int rackTeeth;
 @property float rackClearance;
 
+// GEAR
 @property int gearTeeth;
 @property float	gearClearance;
 @property float gearHoleDiam;
 @property float gearUnderCut;
+
+
+// interface
 @property float scale;
 @property float rotation;
 

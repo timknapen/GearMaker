@@ -16,10 +16,12 @@
 @property (strong) NSTextView * pitchRadiusView;
 @property (strong) NSTextView * rackInfoView;
 
+
 - (NSBezierPath *) involuteRackWithTeeth:(int)numTeeth
 								   pitch:(float)circularPitch
 						   pressureAngle:(float)pressureAngle
 							   clearance:(float)clearance;
+
 
 - (NSBezierPath *) involuteGearWithTeeth:(int)numTeeth
 						   circularPitch:(float)circularPitch

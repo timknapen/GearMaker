@@ -36,7 +36,7 @@
 		[rackInfoView setSelectable:NO];
 		[rackInfoView setDrawsBackground:NO];
 		[rackInfoView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f]];
-
+		
 		
 		[self addSubview:dimensionView];
 		[self addSubview:pitchRadiusView];
@@ -71,20 +71,21 @@
 	
 	
 	// calculate the pitch radius of the gear
-	float pitchRadius = appDel.gearTeeth * appDel.pitch  / (2.0 * M_PI);
-	[pitchRadiusView setString: [NSString stringWithFormat:@"Pitch radius\n%.2fmm",pitchRadius]];
-	[pitchRadiusView setFrameOrigin: NSMakePoint( self.frame.size.width/2 + centerp.x + pitchRadius * fscale, self.frame.size.height/2 + centerp.y )];
+	float circularPitch = appDel.pitch;
+	float pitchRadius = appDel.gearTeeth * circularPitch  / (2.0 * M_PI);
+	[pitchRadiusView setString: [NSString stringWithFormat:@"Circular pitch\n%.2fmm\n\nPitch radius\n%.2fmm",circularPitch, pitchRadius]];
+	[pitchRadiusView setFrameOrigin: NSMakePoint( self.frame.size.width/2 + centerp.x + pitchRadius * fscale, self.frame.size.height/2 + centerp.y - pitchRadiusView.frame.size.height/2 )];
 	
 	
 	// move the rack along with the gear rotation
 	NSAffineTransform * motion = [NSAffineTransform transform];
 	[motion translateXBy: -((appDel.rackTeeth-1-0.75f) * appDel.pitch) + pitchRadius* (M_PI * appDel.rotation/ 180.0f) yBy:-pitchRadius];
 	
-	[rackInfoView setString:[NSString stringWithFormat:@"%.2fmm", appDel.rackTeeth * appDel.pitch]];
+	[rackInfoView setString:[NSString stringWithFormat:@"Rack width\n%.2fmm", appDel.rackTeeth * appDel.pitch]];
 	[rackInfoView setFrameOrigin: NSMakePoint( self.frame.size.width/2
 											  + fscale * ( (1+0.75f)*appDel.pitch + pitchRadius * (M_PI * appDel.rotation/ 180.0f))+centerp.x,
 											  self.frame.size.height/2 - fscale*pitchRadius + centerp.y)];
-
+	
 	
 	NSAffineTransform * translation = [NSAffineTransform transform];
 	[translation translateXBy:self.frame.size.width/2 yBy:self.frame.size.height/2];
@@ -106,11 +107,34 @@
 		[pitchCircle lineToPoint:NSMakePoint(-.5, i)];
 		[pitchCircle moveToPoint:NSMakePoint(.5, -i)];
 		[pitchCircle lineToPoint:NSMakePoint(-.5, -i)];
+		if( i % 10 == 0){
+			[pitchCircle moveToPoint:NSMakePoint(i, pitchRadius)];
+			[pitchCircle lineToPoint:NSMakePoint(i, -pitchRadius)];
+			[pitchCircle moveToPoint:NSMakePoint(-i, pitchRadius)];
+			[pitchCircle lineToPoint:NSMakePoint(-i, -pitchRadius)];
+			[pitchCircle moveToPoint:NSMakePoint(pitchRadius, i)];
+			[pitchCircle lineToPoint:NSMakePoint(-pitchRadius, i)];
+			[pitchCircle moveToPoint:NSMakePoint(pitchRadius, -i)];
+			[pitchCircle lineToPoint:NSMakePoint(-pitchRadius, -i)];
+		}
 	}
+	// show pitch
+	[pitchCircle moveToPoint:NSMakePoint(pitchRadius - 1, -circularPitch/2)];
+	[pitchCircle lineToPoint:NSMakePoint(pitchRadius + 1, -circularPitch/2)];
+	
+	//[pitchCircle moveToPoint:NSMakePoint(pitchRadius - 1, -circularPitch/2)];
+	//[pitchCircle lineToPoint:NSMakePoint(pitchRadius - 1, circularPitch/2)];
+	
+	[pitchCircle moveToPoint:NSMakePoint(pitchRadius - 1, circularPitch/2)];
+	[pitchCircle lineToPoint:NSMakePoint(pitchRadius + 1, circularPitch/2)];
+	
 	[pitchCircle moveToPoint:NSMakePoint(0, -pitchRadius)];
 	[pitchCircle lineToPoint:NSMakePoint(0, pitchRadius)];
 	[pitchCircle moveToPoint:NSMakePoint( -pitchRadius, 0)];
 	[pitchCircle lineToPoint:NSMakePoint( pitchRadius, 0)];
+	
+	//[pitchCircle transformUsingAffineTransform:rotation];
+	
 	[pitchCircle transformUsingAffineTransform:scaler];
 	[pitchCircle transformUsingAffineTransform:translation];
 	[pitchCircle setLineWidth:0.5f];
@@ -125,8 +149,8 @@
 	
 	
 	
-	NSBezierPath * refPath = [NSBezierPath bezierPathWithRect:NSMakeRect(1, 1, fscale*10, fscale*10)];
-	
+	NSBezierPath * refPath = [NSBezierPath bezierPathWithRect:NSMakeRect(1, self.frame.size.height-fscale*10, fscale*10, fscale*10)];
+	[dimensionView setFrameOrigin:NSMakePoint(0, self.frame.size.height-12)];
 	
 	
 	// create a gear
@@ -151,6 +175,7 @@
 													pitch:appDel.pitch
 											pressureAngle:appDel.pressureAngle
 												clearance:appDel.rackClearance];
+	
 	[rackPath transformUsingAffineTransform:motion];
 	[rackPath transformUsingAffineTransform:scaler];
 	[rackPath transformUsingAffineTransform:translation];
@@ -196,7 +221,7 @@
 	ofxVec2f pt;
 	
 	[rackPath moveToPoint:NSMakePoint(0, -2*dedendum)];
-	
+		
 	for(int i =0; i < numTeeth; i++){
 		float xpos = (float)i * circularPitch;
 		pt = ofxVec2f( xpos + 0, 0) + deden.getRotated(pressureAngle);
@@ -205,8 +230,11 @@
 		pt = ofxVec2f( xpos + circularPitch/2, 0) + deden.getRotated(-pressureAngle);
 		[rackPath lineToPoint:NSMakePoint(pt.x, pt.y)];
 		
-		pt = ofxVec2f( xpos + circularPitch/2, 0) + adden.getRotated(-pressureAngle);
-		[rackPath lineToPoint:NSMakePoint(pt.x, pt.y)];
+		
+			pt = ofxVec2f( xpos + circularPitch/2, 0) + adden.getRotated(-pressureAngle);
+			[rackPath lineToPoint:NSMakePoint(pt.x, pt.y)];
+		
+		
 		
 		pt = ofxVec2f( xpos + circularPitch, 0) + adden.getRotated(pressureAngle);
 		[rackPath lineToPoint:NSMakePoint(pt.x, pt.y)];
@@ -232,7 +260,7 @@
 						  underCutAngle:(float)underCutAngle
 {
 	underCutAngle *= DEG_TO_RAD;
-
+	
 	float addendum = (float) circularPitch / M_PI;
 	float dedendum = addendum + clearance;
 	
