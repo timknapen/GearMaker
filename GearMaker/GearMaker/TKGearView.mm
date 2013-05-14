@@ -18,7 +18,7 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-		dimensionView = [[NSTextView alloc] initWithFrame:NSMakeRect(2, 2, 200, 10)];
+		dimensionView = [[NSTextView alloc] initWithFrame:NSMakeRect(2, 2, 600, 10)];
 		[dimensionView setFont:[NSFont systemFontOfSize:11]];
 		[dimensionView setString:@"10mm x 10mm"];
 		[dimensionView setSelectable:NO];
@@ -36,15 +36,15 @@
 {
 	TKAppDelegate * appDel =  [[NSApplication sharedApplication] delegate];
 
-	// calculate the outerDiam of the gear
+	// calculate the pitch radius of the gear
 	float pitchRadius = appDel.gearTeeth * appDel.pitch  / (2.0 * M_PI);
+	[dimensionView setString: [NSString stringWithFormat:@"10mm x 10mm. Pitch radius = %.2fmm.",pitchRadius]];
 
 	// fill background
 	[[NSColor whiteColor] set];
 	NSRectFill(dirtyRect);
 	
 	// rotation translation
-	// 360° at base circle = numTeeth * circularPitch
 	NSAffineTransform * motion = [NSAffineTransform transform];
 	[motion translateXBy: -((appDel.rackTeeth-1-0.75f) * appDel.pitch) + pitchRadius* (M_PI * appDel.rotation/ 180.0f) yBy:-pitchRadius];
 	

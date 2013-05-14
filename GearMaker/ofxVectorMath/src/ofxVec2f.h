@@ -1,3 +1,9 @@
+/*
+ 
+ modified from openframeworks ofxVectorMath
+ 
+ */
+
 #ifndef _OFX_VEC2f
 #define _OFX_VEC2f
 
