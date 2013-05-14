@@ -12,19 +12,27 @@
 
 @implementation TKGearView
 @synthesize centerp;
-@synthesize dimensionView;
+@synthesize dimensionView, pitchRadiusView;
 
 - (id)initWithFrame:(NSRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
-		dimensionView = [[NSTextView alloc] initWithFrame:NSMakeRect(2, 2, 600, 10)];
+		dimensionView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 1, 600, 10)];
 		[dimensionView setFont:[NSFont systemFontOfSize:11]];
-		[dimensionView setString:@"10mm x 10mm"];
 		[dimensionView setSelectable:NO];
 		[dimensionView setDrawsBackground:NO];
-		[dimensionView setTextColor:[NSColor blueColor]];
+		[dimensionView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f]];
+		[dimensionView setString: @"10mm"];
+
+		pitchRadiusView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 500, 10)];
+		[pitchRadiusView setFont:[NSFont systemFontOfSize:11]];
+		[pitchRadiusView setSelectable:NO];
+		[pitchRadiusView setDrawsBackground:NO];
+		[pitchRadiusView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f]];
+		
 		[self addSubview:dimensionView];
+		[self addSubview:pitchRadiusView];
 		centerp = NSMakePoint(0, 0);
 		[self setAcceptsTouchEvents:YES];
     }
@@ -32,38 +40,50 @@
     return self;
 }
 
+- (void)awakeFromNib{
+	[self setNeedsDisplay:YES];
+}
+
 - (void)drawRect:(NSRect)dirtyRect
 {
-	TKAppDelegate * appDel =  [[NSApplication sharedApplication] delegate];
-
-	// calculate the pitch radius of the gear
-	float pitchRadius = appDel.gearTeeth * appDel.pitch  / (2.0 * M_PI);
-	[dimensionView setString: [NSString stringWithFormat:@"10mm x 10mm. Pitch radius = %.2fmm.",pitchRadius]];
-
+	
 	// fill background
 	[[NSColor whiteColor] set];
 	NSRectFill(dirtyRect);
 	
-	// rotation translation
-	NSAffineTransform * motion = [NSAffineTransform transform];
-	[motion translateXBy: -((appDel.rackTeeth-1-0.75f) * appDel.pitch) + pitchRadius* (M_PI * appDel.rotation/ 180.0f) yBy:-pitchRadius];
-	
+	TKAppDelegate * appDel =  [[NSApplication sharedApplication] delegate];
+	float fscale = appDel.scale * (72.0f / 25.4f);
 	// convert window coordinates to mm
 	// 1 pixel @ 72dpi => 72pixels/inch =>
 	// 1 pixel = inch/72
 	// 1 pixel = 25.4 / 72.0 mm
+	
 	NSAffineTransform * scaler = [NSAffineTransform transform];
-	[scaler scaleBy:appDel.scale];
-	[scaler scaleBy: 72.0f / 25.4f];
+	[scaler scaleBy:fscale];
+	
+	
+	// calculate the pitch radius of the gear
+	float pitchRadius = appDel.gearTeeth * appDel.pitch  / (2.0 * M_PI);
+	[pitchRadiusView setString: [NSString stringWithFormat:@"Pitch radius\n%.2fmm",pitchRadius]];
+	[pitchRadiusView setFrameOrigin: NSMakePoint( self.frame.size.width/2 + centerp.x + pitchRadius * fscale, self.frame.size.height/2 + centerp.y )];
+	
+	
+	// move the rack along with the gear rotation
+	NSAffineTransform * motion = [NSAffineTransform transform];
+	[motion translateXBy: -((appDel.rackTeeth-1-0.75f) * appDel.pitch) + pitchRadius* (M_PI * appDel.rotation/ 180.0f) yBy:-pitchRadius];
+	
+	
 	
 	NSAffineTransform * translation = [NSAffineTransform transform];
 	[translation translateXBy:self.frame.size.width/2 yBy:self.frame.size.height/2];
 	[translation translateXBy:self.centerp.x yBy:self.centerp.y];
 	
-	
+	// rotate the gear
 	NSAffineTransform * rotation = [NSAffineTransform transform];
 	[rotation rotateByDegrees:appDel.rotation];
 	
+	
+	// reference sizes
 	NSBezierPath * pitchCircle = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(-pitchRadius, -pitchRadius, 2*pitchRadius, 2*pitchRadius)];
 	[pitchCircle moveToPoint:NSMakePoint(-1, 0)];
 	[pitchCircle lineToPoint:NSMakePoint(1, 0)];
@@ -71,19 +91,18 @@
 	[pitchCircle lineToPoint:NSMakePoint(0, 1)];
 	[pitchCircle transformUsingAffineTransform:scaler];
 	[pitchCircle transformUsingAffineTransform:translation];
-	
-	NSBezierPath * refPath = [NSBezierPath bezierPathWithRect:NSMakeRect(0, 0, 10, 10)];
-	[refPath moveToPoint:NSMakePoint(0, 0)];
-	[refPath lineToPoint:NSMakePoint(10, 10)];
-	[refPath transformUsingAffineTransform:scaler];
+	[pitchCircle setLineWidth:0.5f];
+
+	NSBezierPath * refPath = [NSBezierPath bezierPathWithRect:NSMakeRect(1, 1, fscale*10, fscale*10)];
 
 	
 	
+	// create a gear
 	NSBezierPath * gearPath = [self involuteGearWithTeeth:appDel.gearTeeth
 											circularPitch:appDel.pitch
 											pressureAngle:appDel.pressureAngle
 												clearance:appDel.gearClearance];
-	
+	// create the hole
 	NSBezierPath * holePath = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(-appDel.gearHoleDiam/2, -appDel.gearHoleDiam/2, appDel.gearHoleDiam, appDel.gearHoleDiam)];
 	holePath = [holePath bezierPathByReversingPath];
 	
@@ -93,7 +112,7 @@
 	[gearPath transformUsingAffineTransform:scaler];
 	[gearPath transformUsingAffineTransform:translation];
 	
-	
+	// create the rack
 	NSBezierPath * rackPath = [self involuteRackWithTeeth:appDel.rackTeeth
 													pitch:appDel.pitch
 											pressureAngle:appDel.pressureAngle
@@ -103,20 +122,19 @@
 	[rackPath transformUsingAffineTransform:translation];
 
 	
-	[pitchCircle setLineWidth:0.5f];
 
 	
-	[[NSColor blueColor] set];
-	[refPath stroke];
-	[pitchCircle stroke];
 
 	
-	[[NSColor colorWithCalibratedRed:.5f green:0 blue:0 alpha:.5f] set];
+	[[NSColor colorWithCalibratedRed:1 green:.2f blue:.2f alpha:.7f] set];
 	[gearPath fill];
 	
-	[[NSColor colorWithCalibratedRed:0 green:.5f blue:0 alpha:.5f] set];
+	[[NSColor colorWithCalibratedRed:0 green:.6f blue:0 alpha:.7f] set];
 	[rackPath fill];
 	
+	[[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f] set];
+	[refPath stroke];
+	[pitchCircle stroke];
 	
 }
 
@@ -263,6 +281,7 @@
     newSize.width = self.frame.size.width * ([event magnification] + 1.0);
     //[self setFrameSize:newSize];
 	appDel.scale *= 1+[event magnification];
+	appDel.scale = fmaxf(appDel.scale, 1.0f);
 	[self setNeedsDisplay:YES];
 }
 
@@ -274,7 +293,6 @@
 
 
 - (void)scrollWheel:(NSEvent *)theEvent {
-   // NSLog(@"user scrolled %f horizontally and %f vertically", [event deltaX], [event deltaY]);
 	centerp.x += [theEvent deltaX];
 	centerp.y -= [theEvent deltaY];
 	[self setNeedsDisplay:YES];

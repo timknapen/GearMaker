@@ -13,6 +13,7 @@
 }
 @property NSPoint centerp;
 @property (strong)	NSTextView * dimensionView;
+@property (strong) NSTextView * pitchRadiusView;
 
 
 - (NSBezierPath *) involuteRackWithTeeth:(int)numTeeth
