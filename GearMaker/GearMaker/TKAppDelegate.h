@@ -17,6 +17,7 @@
 // GENERAL
 @property float pitch;
 @property float pressureAngle;
+@property float fillet;
 
 // RACK
 @property int rackTeeth;
@@ -32,7 +33,8 @@
 // interface
 @property float scale;
 @property float rotation;
-
-- (IBAction)regenerate:(id)sender;
+- (IBAction)zoomIn:(id)sender;
+- (IBAction)zoomOut:(id)sender;
+- (IBAction)zoomNormal:(id)sender;
 
 @end

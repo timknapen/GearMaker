@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		220B6FEC1743621D004C1F2A /* clipper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 220B6F161743621D004C1F2A /* clipper.cpp */; };
+		220B70A01743621D004C1F2A /* License.txt in Resources */ = {isa = PBXBuildFile; fileRef = 220B6FEA1743621D004C1F2A /* License.txt */; };
+		220B70A11743621D004C1F2A /* README in Resources */ = {isa = PBXBuildFile; fileRef = 220B6FEB1743621D004C1F2A /* README */; };
 		22308F87174117A9009E511C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22308F86174117A9009E511C /* Cocoa.framework */; };
 		22308F91174117A9009E511C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 22308F8F174117A9009E511C /* InfoPlist.strings */; };
 		22308F93174117A9009E511C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 22308F92174117A9009E511C /* main.m */; };
@@ -20,10 +23,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		220B6F161743621D004C1F2A /* clipper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clipper.cpp; sourceTree = "<group>"; };
+		220B6F171743621D004C1F2A /* clipper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = clipper.hpp; sourceTree = "<group>"; };
+		220B6FEA1743621D004C1F2A /* License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = License.txt; sourceTree = "<group>"; };
+		220B6FEB1743621D004C1F2A /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
 		22308F83174117A9009E511C /* GearMaker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GearMaker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		22308F86174117A9009E511C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		22308F89174117A9009E511C /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		22308F8A174117A9009E511C /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		22308F8B174117A9009E511C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		22308F8E174117A9009E511C /* GearMaker-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GearMaker-Info.plist"; sourceTree = "<group>"; };
 		22308F90174117A9009E511C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -53,13 +59,41 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		220B6D8117435330004C1F2A /* libraries */ = {
+			isa = PBXGroup;
+			children = (
+				220B6F141743621D004C1F2A /* clipper_ver5.1.0 */,
+				22308FA61741411D009E511C /* vectorMath */,
+			);
+			name = libraries;
+			sourceTree = "<group>";
+		};
+		220B6F141743621D004C1F2A /* clipper_ver5.1.0 */ = {
+			isa = PBXGroup;
+			children = (
+				220B6F151743621D004C1F2A /* cpp */,
+				220B6FEA1743621D004C1F2A /* License.txt */,
+				220B6FEB1743621D004C1F2A /* README */,
+			);
+			path = clipper_ver5.1.0;
+			sourceTree = "<group>";
+		};
+		220B6F151743621D004C1F2A /* cpp */ = {
+			isa = PBXGroup;
+			children = (
+				220B6F161743621D004C1F2A /* clipper.cpp */,
+				220B6F171743621D004C1F2A /* clipper.hpp */,
+			);
+			path = cpp;
+			sourceTree = "<group>";
+		};
 		22308F7A174117A9009E511C = {
 			isa = PBXGroup;
 			children = (
 				22DEED2F17427DAB009037D2 /* rack_icon.png */,
 				22DEED2B17427CF2009037D2 /* gear_icon.png */,
 				22308FB8174193EA009E511C /* gear.icns */,
-				22308FA61741411D009E511C /* vectorMath */,
+				220B6D8117435330004C1F2A /* libraries */,
 				22308F8C174117A9009E511C /* GearMaker */,
 				22308F85174117A9009E511C /* Frameworks */,
 				22308F84174117A9009E511C /* Products */,
@@ -87,7 +121,6 @@
 			isa = PBXGroup;
 			children = (
 				22308F89174117A9009E511C /* AppKit.framework */,
-				22308F8A174117A9009E511C /* CoreData.framework */,
 				22308F8B174117A9009E511C /* Foundation.framework */,
 			);
 			name = "Other Frameworks";
@@ -193,6 +226,8 @@
 				22308FB9174193EA009E511C /* gear.icns in Resources */,
 				22DEED2D17427CF2009037D2 /* gear_icon.png in Resources */,
 				22DEED3017427DAB009037D2 /* rack_icon.png in Resources */,
+				220B70A01743621D004C1F2A /* License.txt in Resources */,
+				220B70A11743621D004C1F2A /* README in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -206,6 +241,7 @@
 				22308F93174117A9009E511C /* main.m in Sources */,
 				22308F9A174117A9009E511C /* TKAppDelegate.m in Sources */,
 				22308FA5174117CD009E511C /* TKGearView.mm in Sources */,
+				220B6FEC1743621D004C1F2A /* clipper.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

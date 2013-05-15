@@ -9,21 +9,27 @@
 #import "TKGearView.h"
 #import "TKAppDelegate.h"
 #import "ofxVec2f.h"
+#import <vector>
+#include "clipper.hpp"
+using namespace ClipperLib;
 
 @implementation TKGearView
 @synthesize centerp;
-@synthesize dimensionView, pitchRadiusView, rackInfoView;
+@synthesize dimensionView, pitchRadiusView, rackInfoView, gearPath, rackPath;
 
 - (id)initWithFrame:(NSRect)frame
 {
     self = [super initWithFrame:frame];
+	
     if (self) {
+
 		self.dimensionView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 1, 600, 10)];
 		[dimensionView setFont:[NSFont systemFontOfSize:11]];
 		[dimensionView setSelectable:NO];
 		[dimensionView setDrawsBackground:NO];
 		[dimensionView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f]];
 		[dimensionView setString: @"10mm"];
+		[dimensionView setHidden:YES];
 		
 		self.pitchRadiusView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 500, 10)];
 		[pitchRadiusView setFont:[NSFont systemFontOfSize:11]];
@@ -36,8 +42,6 @@
 		[rackInfoView setSelectable:NO];
 		[rackInfoView setDrawsBackground:NO];
 		[rackInfoView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f]];
-		
-		
 		[self addSubview:dimensionView];
 		[self addSubview:pitchRadiusView];
 		[self addSubview:rackInfoView];
@@ -49,6 +53,30 @@
 }
 
 - (void)awakeFromNib{
+	TKAppDelegate * appDel =  [[NSApplication sharedApplication] delegate];
+	
+	appDel.pitch = 5;
+	appDel.pressureAngle = 20;
+	appDel.fillet = 0.1f;
+	
+	appDel.rackTeeth = 23;
+	appDel.rackClearance = 0;
+	
+	appDel.gearTeeth = 23;
+	appDel.gearClearance = 0;
+	appDel.gearHoleDiam = 5;
+	appDel.gearUnderCut = 0;
+	
+	appDel.scale = 4;
+	appDel.rotation = 0;
+	[self updateBoth:nil];
+}
+
+
+#pragma mark -
+#pragma mark DRAWING
+
+- (void)updateView:(id)sender{
 	[self setNeedsDisplay:YES];
 }
 
@@ -84,7 +112,7 @@
 	[rackInfoView setString:[NSString stringWithFormat:@"Rack width\n%.2fmm", appDel.rackTeeth * appDel.pitch]];
 	[rackInfoView setFrameOrigin: NSMakePoint( self.frame.size.width/2
 											  + fscale * ( (1+0.75f)*appDel.pitch + pitchRadius * (M_PI * appDel.rotation/ 180.0f))+centerp.x,
-											  self.frame.size.height/2 - fscale*pitchRadius + centerp.y)];
+											  self.frame.size.height/2 - fscale*pitchRadius + centerp.y - 22)];
 	
 	
 	NSAffineTransform * translation = [NSAffineTransform transform];
@@ -122,9 +150,6 @@
 	[pitchCircle moveToPoint:NSMakePoint(pitchRadius - 1, -circularPitch/2)];
 	[pitchCircle lineToPoint:NSMakePoint(pitchRadius + 1, -circularPitch/2)];
 	
-	//[pitchCircle moveToPoint:NSMakePoint(pitchRadius - 1, -circularPitch/2)];
-	//[pitchCircle lineToPoint:NSMakePoint(pitchRadius - 1, circularPitch/2)];
-	
 	[pitchCircle moveToPoint:NSMakePoint(pitchRadius - 1, circularPitch/2)];
 	[pitchCircle lineToPoint:NSMakePoint(pitchRadius + 1, circularPitch/2)];
 	
@@ -132,9 +157,7 @@
 	[pitchCircle lineToPoint:NSMakePoint(0, pitchRadius)];
 	[pitchCircle moveToPoint:NSMakePoint( -pitchRadius, 0)];
 	[pitchCircle lineToPoint:NSMakePoint( pitchRadius, 0)];
-	
-	//[pitchCircle transformUsingAffineTransform:rotation];
-	
+		
 	[pitchCircle transformUsingAffineTransform:scaler];
 	[pitchCircle transformUsingAffineTransform:translation];
 	[pitchCircle setLineWidth:0.5f];
@@ -147,38 +170,28 @@
 	[rackInfo moveToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, -1)];
 	[rackInfo lineToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, 1)];
 	
-	
-	
-	NSBezierPath * refPath = [NSBezierPath bezierPathWithRect:NSMakeRect(1, self.frame.size.height-fscale*10, fscale*10, fscale*10)];
-	[dimensionView setFrameOrigin:NSMakePoint(0, self.frame.size.height-12)];
-	
-	
+
 	// create a gear
-	NSBezierPath * gearPath = [self involuteGearWithTeeth:appDel.gearTeeth
-											circularPitch:appDel.pitch
-											pressureAngle:appDel.pressureAngle
-												clearance:appDel.gearClearance
-											underCutAngle:appDel.gearUnderCut
-							   ];
+	NSBezierPath * gear = [NSBezierPath bezierPath];
+	[gear appendBezierPath:self.gearPath];
+	
 	// create the hole
 	NSBezierPath * holePath = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(-appDel.gearHoleDiam/2, -appDel.gearHoleDiam/2, appDel.gearHoleDiam, appDel.gearHoleDiam)];
 	holePath = [holePath bezierPathByReversingPath];
 	
 	
-	[gearPath transformUsingAffineTransform:rotation];
-	[gearPath appendBezierPath:holePath];
-	[gearPath transformUsingAffineTransform:scaler];
-	[gearPath transformUsingAffineTransform:translation];
+	[gear transformUsingAffineTransform:rotation];
+	[gear appendBezierPath:holePath];
+	[gear transformUsingAffineTransform:scaler];
+	[gear transformUsingAffineTransform:translation];
 	
 	// create the rack
-	NSBezierPath * rackPath = [self involuteRackWithTeeth:appDel.rackTeeth
-													pitch:appDel.pitch
-											pressureAngle:appDel.pressureAngle
-												clearance:appDel.rackClearance];
+	NSBezierPath * rack = [NSBezierPath bezierPath];
+	[rack appendBezierPath:rackPath];
 	
-	[rackPath transformUsingAffineTransform:motion];
-	[rackPath transformUsingAffineTransform:scaler];
-	[rackPath transformUsingAffineTransform:translation];
+	[rack transformUsingAffineTransform:motion];
+	[rack transformUsingAffineTransform:scaler];
+	[rack transformUsingAffineTransform:translation];
 	
 	[rackInfo transformUsingAffineTransform:motion];
 	[rackInfo transformUsingAffineTransform:scaler];
@@ -188,31 +201,57 @@
 	
 	
 	// ACTUAL DRAWING
-	
 	[[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f] set];
-	[refPath stroke];
 	[pitchCircle stroke];
 	[rackInfo stroke];
 	
 	[[NSColor colorWithCalibratedRed:1 green:.2f blue:.2f alpha:.7f] set];
-	[gearPath fill];
+	[gear fill];
 	
 	[[NSColor colorWithCalibratedRed:0 green:.6f blue:0 alpha:.7f] set];
-	[rackPath fill];
+	[rack fill];
 	
+	if(![[NSGraphicsContext currentContext] isDrawingToScreen]){
+		NSBezierPath * pageEdges = [NSBezierPath bezierPathWithRect:dirtyRect];
+		[[NSColor grayColor] set];
+		[pageEdges stroke];
+		
+		[[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f] set];
+		NSBezierPath * refPath = [NSBezierPath bezierPathWithRect:NSMakeRect(1, self.frame.size.height-fscale*10, fscale*10, fscale*10)];
+		[dimensionView setFrameOrigin:NSMakePoint(0, self.frame.size.height-12)];
+		[refPath stroke];
+	}
 	
 	
 }
 
+
 #pragma mark -
 #pragma mark GEARS
+
+-(void)updateBoth:(id)sender{
+	[self updateGear:nil];
+	[self updateRack:nil];
+}
+
+-(void) updateRack:(id)sender{
+	TKAppDelegate * appDel =  [[NSApplication sharedApplication] delegate];
+	self.rackPath = [self involuteRackWithTeeth:appDel.rackTeeth
+										  pitch:appDel.pitch
+								  pressureAngle:appDel.pressureAngle
+									  clearance:appDel.rackClearance
+										 fillet:appDel.fillet];
+	[self setNeedsDisplay:YES];
+}
+
 - (NSBezierPath *)involuteRackWithTeeth:(int)numTeeth
 								  pitch:(float)circularPitch
 						  pressureAngle:(float)pressureAngle
 							  clearance:(float)clearance
+								 fillet:(float)fillet
 {
 	
-	NSBezierPath * rackPath = [NSBezierPath bezierPath];
+	NSBezierPath * rack = [NSBezierPath bezierPath];
 	
 	float addendum = circularPitch / M_PI;
 	float dedendum = addendum + clearance;
@@ -220,44 +259,95 @@
 	ofxVec2f adden(0, addendum);
 	ofxVec2f pt;
 	
-	[rackPath moveToPoint:NSMakePoint(0, -2*dedendum)];
-		
+	std::vector <ofxVec2f> pts;
+	pts.push_back(ofxVec2f(0, -2*dedendum));
+	
 	for(int i =0; i < numTeeth; i++){
 		float xpos = (float)i * circularPitch;
 		pt = ofxVec2f( xpos + 0, 0) + deden.getRotated(pressureAngle);
-		[rackPath lineToPoint:NSMakePoint(pt.x, pt.y)];
+		pts.push_back(pt);
 		
 		pt = ofxVec2f( xpos + circularPitch/2, 0) + deden.getRotated(-pressureAngle);
-		[rackPath lineToPoint:NSMakePoint(pt.x, pt.y)];
+		pts.push_back(pt);
 		
 		
-			pt = ofxVec2f( xpos + circularPitch/2, 0) + adden.getRotated(-pressureAngle);
-			[rackPath lineToPoint:NSMakePoint(pt.x, pt.y)];
-		
-		
+		pt = ofxVec2f( xpos + circularPitch/2, 0) + adden.getRotated(-pressureAngle);
+		pts.push_back(pt);
 		
 		pt = ofxVec2f( xpos + circularPitch, 0) + adden.getRotated(pressureAngle);
-		[rackPath lineToPoint:NSMakePoint(pt.x, pt.y)];
+		pts.push_back(pt);
 		
 	}
 	
 	pt = ofxVec2f( numTeeth * circularPitch, 0) + deden.getRotated(pressureAngle);
-	[rackPath lineToPoint:NSMakePoint(pt.x, pt.y)];
+	pts.push_back(pt);
+	
 	pt = ofxVec2f( pt.x, -2 *dedendum);
-	[rackPath lineToPoint:NSMakePoint(pt.x, pt.y)];
+	pts.push_back(pt);
 	
-	[rackPath closePath];
+	// fillet
+	if(fillet > 0.0f){
+		Clipper clipper;
+		clipper.Clear();
+		Polygons subj(1), solution, solution2, solution3, solution4;
+		for(int i = 0; i < pts.size(); i++){
+			subj[0].push_back(IntPoint(1000.0f*pts[i].x, 1000.0f*pts[i].y));
+		}
+		
+		pts.clear();
+		
+		clipper.AddPolygons(subj, ptSubject);
+		
+		// jtRound,  jtMiter, jtSquare
+		OffsetPolygons(subj, solution, -fillet*1000.0f, jtSquare, 1.0f, true);
+		OffsetPolygons(solution, solution2, fillet*1000.0f, jtRound, 1.0f, true);
+		OffsetPolygons(solution2, solution3, fillet*1000.0f, jtSquare, 1.0f, true);
+		OffsetPolygons(solution3, solution4, -fillet*1000.0f, jtRound, 1.0f, true);
+		
+		for (int s = 0;  s < solution4.size(); s++) {
+			for (int i =0; i < solution4[s].size(); i++) {
+				pts.push_back( ofxVec2f((float)solution4[s][i].X/1000.0f, (float)solution4[s][i].Y/1000.0f));
+			}
+		}
+	}
+	// end fillet
+	
+	
+	if(pts.size() >0){
+		[rack moveToPoint:NSMakePoint(pts[0].x, pts[0].y)];
+	}
+	for(int i = 0; i  < pts.size(); i++){
+		[rack lineToPoint:NSMakePoint(pts[i].x, pts[i].y)];
+	}
+	
+	
+	[rack closePath];
 	
 	
 	
-	return rackPath;
+	return rack;
 }
+
+
+-(void)updateGear:(id)sender{
+	TKAppDelegate * appDel =  [[NSApplication sharedApplication] delegate];
+	self.gearPath  = [self involuteGearWithTeeth:appDel.gearTeeth
+								   circularPitch:appDel.pitch
+								   pressureAngle:appDel.pressureAngle
+									   clearance:appDel.gearClearance
+								   underCutAngle:appDel.gearUnderCut
+										  fillet:appDel.fillet];
+	[self setNeedsDisplay:YES];
+}
+
+
 
 - (NSBezierPath *)involuteGearWithTeeth:(int)numTeeth
 						  circularPitch:(float)circularPitch
 						  pressureAngle:(float)pressureAngle
 							  clearance:(float)clearance
 						  underCutAngle:(float)underCutAngle
+								 fillet:(float)fillet
 {
 	underCutAngle *= DEG_TO_RAD;
 	
@@ -268,7 +358,6 @@
 	float pitchRadius = numTeeth * circularPitch / (2.0 * M_PI);
 	float baseRadius = pitchRadius * cos( M_PI * pressureAngle /180.0);
 	float outerRadius = pitchRadius + addendum;
-	float rootRadius = pitchRadius - dedendum;
 	
 	float maxtanlength = sqrt(outerRadius*outerRadius - baseRadius*baseRadius);
 	float maxangle = maxtanlength / baseRadius;
@@ -281,20 +370,20 @@
 	
 	int resolution = 10;
 	
-	NSBezierPath * teeth = [NSBezierPath bezierPath];
+	NSBezierPath * gear = [NSBezierPath bezierPath];
+	std::vector <ofxVec2f> pts;
 	ofxVec2f vec;
 	float rot =  M_PI -angularToothWidthAtBase/2;
-	vec = ofxVec2f(0, rootRadius);
+	vec = ofxVec2f(0, baseRadius - dedendum);
 	vec.rotateRad(rot + underCutAngle );
-	[teeth moveToPoint:NSMakePoint(vec.x, vec.y)];
+	pts.push_back(vec);
+	
 	
 	for(int a = 0; a < numTeeth; a++){
-		rot = M_PI -angularToothWidthAtBase/2 + (float) a * 2 * M_PI / (float)numTeeth;
-		
-		vec = ofxVec2f(0, rootRadius);
+		rot = M_PI -angularToothWidthAtBase/2 + (float) a * 2 * M_PI / (float)numTeeth;	
+		vec = ofxVec2f(0, baseRadius - dedendum);
 		vec.rotateRad(rot + underCutAngle);
-		[teeth lineToPoint:NSMakePoint(vec.x, vec.y)];
-		
+		pts.push_back(vec);
 		
 		for(int i = 0; i <= resolution; i++){
 			// first side of the teeth:
@@ -304,8 +393,7 @@
 			ofxVec2f tanvec = radvec.getPerpendicular() * -1;
 			vec = (radvec * baseRadius) + (tanvec * tanlength);
 			vec.rotateRad(rot);
-			[teeth lineToPoint:NSMakePoint(vec.x, vec.y)];
-			
+			pts.push_back(vec);
 		}
 		for(int i = resolution ; i >=0; i--){
 			// first side of the teeth:
@@ -315,34 +403,82 @@
 			ofxVec2f tanvec =  radvec.getPerpendicular();
 			vec = (radvec * baseRadius) + (tanvec * tanlength);
 			vec.rotateRad(rot);
-			[teeth lineToPoint:NSMakePoint(vec.x, vec.y)];
+			pts.push_back(vec);
 		}
 		
 		
-		vec = ofxVec2f(0, rootRadius).getRotatedRad(angularToothWidthAtBase);
-		vec.rotateRad(rot - underCutAngle );
-		[teeth lineToPoint:NSMakePoint(vec.x, vec.y)];
-		
-		
+		vec = ofxVec2f(0, baseRadius - dedendum).getRotatedRad(angularToothWidthAtBase);
+		vec.rotateRad(rot - underCutAngle);
+		pts.push_back(vec);		
 	}
-	[teeth closePath];
-	return teeth;
+	
+	// fillet
+	if(fillet > 0.0f){
+		Clipper clipper;
+		clipper.Clear();
+		Polygons subj(1), solution, solution2, solution3, solution4;
+		for(int i = 0; i < pts.size(); i++){
+			subj[0].push_back(IntPoint(1000.0f*pts[i].x, 1000.0f*pts[i].y));
+		}
+		
+		pts.clear();
+		
+		clipper.AddPolygons(subj, ptSubject);
+		
+		// jtRound,  jtMiter, jtSquare
+		OffsetPolygons(subj, solution, -fillet*1000.0f, jtSquare, 1.0f, true);
+		OffsetPolygons(solution, solution2, fillet*1000.0f, jtRound, 1.0f, true);
+		OffsetPolygons(solution2, solution3, fillet*1000.0f, jtSquare, 1.0f, true);
+		OffsetPolygons(solution3, solution4, -fillet*1000.0f, jtRound, 1.0f, true);
+		
+		for (int s = 0;  s < solution4.size(); s++) {
+			for (int i =0; i < solution4[s].size(); i++) {
+				pts.push_back( ofxVec2f((float)solution4[s][i].X/1000.0f, (float)solution4[s][i].Y/1000.0f));
+			}
+		}
+	}
+	// end fillet
+	
+	
+	if(pts.size() >0){
+		[gear moveToPoint:NSMakePoint(pts[0].x, pts[0].y)];
+	}
+	for(int i = 0; i  < pts.size(); i++){
+		[gear lineToPoint:NSMakePoint(pts[i].x, pts[i].y)];
+	}
+	
+	[gear closePath];
+	return gear;
 	
 	
 }
+
 
 #pragma mark -
 #pragma mark PRINTING
 
 - (void)print:(id)sender{
+	
+	NSRect oldFrame = self.frame;
+
+	// set frame to DIN A4 : 210 mm, 297 mm
+	[self setFrame:NSMakeRect(0, 0, 210.0 * 72.0f / 25.4f, 297.0 * 72.0f / 25.4f)];
 	TKAppDelegate * appDel =  [[NSApplication sharedApplication] delegate];
 	float tscale = appDel.scale;
 	float trot = appDel.rotation;
-	appDel.scale =1;
+	appDel.scale = 1;
 	appDel.rotation=0;
+
+	[dimensionView setHidden:NO];
+
 	[super print:sender];
+	
+	// SET BACK
+	
+	[self setFrame:oldFrame];
 	appDel.scale = tscale;
 	appDel.rotation=trot;
+	[dimensionView setHidden:YES];
 	[self setNeedsDisplay:YES];
 }
 
