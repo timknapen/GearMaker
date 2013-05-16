@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		220B6FEC1743621D004C1F2A /* clipper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 220B6F161743621D004C1F2A /* clipper.cpp */; };
-		220B70A01743621D004C1F2A /* License.txt in Resources */ = {isa = PBXBuildFile; fileRef = 220B6FEA1743621D004C1F2A /* License.txt */; };
-		220B70A11743621D004C1F2A /* README in Resources */ = {isa = PBXBuildFile; fileRef = 220B6FEB1743621D004C1F2A /* README */; };
+		22267E9B17451D3B00CD92B9 /* clipper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22267E9717451D3B00CD92B9 /* clipper.cpp */; };
+		22267E9C17451D3B00CD92B9 /* License.txt in Resources */ = {isa = PBXBuildFile; fileRef = 22267E9917451D3B00CD92B9 /* License.txt */; };
+		22267E9D17451D3B00CD92B9 /* README in Resources */ = {isa = PBXBuildFile; fileRef = 22267E9A17451D3B00CD92B9 /* README */; };
 		22308F87174117A9009E511C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22308F86174117A9009E511C /* Cocoa.framework */; };
 		22308F91174117A9009E511C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 22308F8F174117A9009E511C /* InfoPlist.strings */; };
 		22308F93174117A9009E511C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 22308F92174117A9009E511C /* main.m */; };
@@ -23,10 +23,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		220B6F161743621D004C1F2A /* clipper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clipper.cpp; sourceTree = "<group>"; };
-		220B6F171743621D004C1F2A /* clipper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = clipper.hpp; sourceTree = "<group>"; };
-		220B6FEA1743621D004C1F2A /* License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = License.txt; sourceTree = "<group>"; };
-		220B6FEB1743621D004C1F2A /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		22267E9717451D3B00CD92B9 /* clipper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clipper.cpp; sourceTree = "<group>"; };
+		22267E9817451D3B00CD92B9 /* clipper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = clipper.hpp; sourceTree = "<group>"; };
+		22267E9917451D3B00CD92B9 /* License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = License.txt; sourceTree = "<group>"; };
+		22267E9A17451D3B00CD92B9 /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
 		22308F83174117A9009E511C /* GearMaker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GearMaker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		22308F86174117A9009E511C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		22308F89174117A9009E511C /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -62,27 +62,27 @@
 		220B6D8117435330004C1F2A /* libraries */ = {
 			isa = PBXGroup;
 			children = (
-				220B6F141743621D004C1F2A /* clipper_ver5.1.0 */,
+				22267E9517451D3B00CD92B9 /* clipper_ver5.1.5 */,
 				22308FA61741411D009E511C /* vectorMath */,
 			);
 			name = libraries;
 			sourceTree = "<group>";
 		};
-		220B6F141743621D004C1F2A /* clipper_ver5.1.0 */ = {
+		22267E9517451D3B00CD92B9 /* clipper_ver5.1.5 */ = {
 			isa = PBXGroup;
 			children = (
-				220B6F151743621D004C1F2A /* cpp */,
-				220B6FEA1743621D004C1F2A /* License.txt */,
-				220B6FEB1743621D004C1F2A /* README */,
+				22267E9617451D3B00CD92B9 /* cpp */,
+				22267E9917451D3B00CD92B9 /* License.txt */,
+				22267E9A17451D3B00CD92B9 /* README */,
 			);
-			path = clipper_ver5.1.0;
+			path = clipper_ver5.1.5;
 			sourceTree = "<group>";
 		};
-		220B6F151743621D004C1F2A /* cpp */ = {
+		22267E9617451D3B00CD92B9 /* cpp */ = {
 			isa = PBXGroup;
 			children = (
-				220B6F161743621D004C1F2A /* clipper.cpp */,
-				220B6F171743621D004C1F2A /* clipper.hpp */,
+				22267E9717451D3B00CD92B9 /* clipper.cpp */,
+				22267E9817451D3B00CD92B9 /* clipper.hpp */,
 			);
 			path = cpp;
 			sourceTree = "<group>";
@@ -226,8 +226,8 @@
 				22308FB9174193EA009E511C /* gear.icns in Resources */,
 				22DEED2D17427CF2009037D2 /* gear_icon.png in Resources */,
 				22DEED3017427DAB009037D2 /* rack_icon.png in Resources */,
-				220B70A01743621D004C1F2A /* License.txt in Resources */,
-				220B70A11743621D004C1F2A /* README in Resources */,
+				22267E9C17451D3B00CD92B9 /* License.txt in Resources */,
+				22267E9D17451D3B00CD92B9 /* README in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,7 +241,7 @@
 				22308F93174117A9009E511C /* main.m in Sources */,
 				22308F9A174117A9009E511C /* TKAppDelegate.m in Sources */,
 				22308FA5174117CD009E511C /* TKGearView.mm in Sources */,
-				220B6FEC1743621D004C1F2A /* clipper.cpp in Sources */,
+				22267E9B17451D3B00CD92B9 /* clipper.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

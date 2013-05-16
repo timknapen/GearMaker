@@ -26,13 +26,13 @@ scale, rotation;
 
 
 - (IBAction)zoomIn:(id)sender {
-	self.scale = self.scale * 2;
-	[gearView setNeedsDisplay:YES];
+	float scaleDif = 2.0f;
+	[self scaleView:scaleDif];
 }
 
 - (IBAction)zoomOut:(id)sender {
-	self.scale = self.scale/2;
-	[gearView setNeedsDisplay:YES];
+	float scaleDif = 0.5f;
+	[self scaleView:scaleDif];
 }
 
 - (void)zoomNormal:(id)sender{
@@ -40,4 +40,20 @@ scale, rotation;
 	gearView.centerp = NSMakePoint(0, 0);
 	[gearView setNeedsDisplay:YES];
 }
+
+- (void)scaleView:(float)scaleDif{
+	self.scale = self.scale * scaleDif;
+	float x = gearView.centerp.x;
+	float y = gearView.centerp.y;
+	
+	// distance from middle of the frame gets scaled
+	// centerp IS a distance from the middle of the frame
+	x *= scaleDif;
+	y *= scaleDif;
+	
+	gearView.centerp = NSMakePoint(x, y);
+	[gearView setNeedsDisplay:YES];
+}
+
+
 @end

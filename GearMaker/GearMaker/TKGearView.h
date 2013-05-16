@@ -8,6 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 
+
 @interface TKGearView : NSView
 {
 }
@@ -36,5 +37,7 @@
 - (IBAction)updateBoth:(id)sender;
 - (IBAction)updateGear:(id)sender;
 - (IBAction)updateRack:(id)sender;
+
+
 
 @end

@@ -36,5 +36,6 @@
 - (IBAction)zoomIn:(id)sender;
 - (IBAction)zoomOut:(id)sender;
 - (IBAction)zoomNormal:(id)sender;
+- (void) scaleView:(float)scaleDif;
 
 @end

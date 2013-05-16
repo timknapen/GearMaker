@@ -10,8 +10,59 @@
 #import "TKAppDelegate.h"
 #import "ofxVec2f.h"
 #import <vector>
+#include <algorithm>    // std::reverse
 #include "clipper.hpp"
 using namespace ClipperLib;
+
+
+void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
+	
+	
+	float precision = 1000.0f; // scale the values for better precision
+	
+	Clipper clipper;
+	Polygons subj(1), solution(1), result(1);
+	
+	for(int i = 0; i < pts->size(); i++){
+		subj[0].push_back(IntPoint(precision*(*pts)[i].x, precision*(*pts)[i].y));
+	}
+	
+	pts->clear();
+	
+	
+	clipper.AddPolygons(subj, ptSubject);
+	if(!Orientation(subj[0])){
+		ReversePolygon(subj[0]);
+	}
+
+	if(fillet > 0.0f){
+		
+		// Join types:  jtRound,  jtMiter, jtSquare
+		// void OffsetPolygons( in_polys, out_polys, delta,  jointype, MiterLimit, AutoFix)
+		
+		// inside fillet
+		OffsetPolygons(subj, solution, fillet*precision, jtSquare, 0.0f, false);
+		OffsetPolygons(solution, subj, -fillet*precision, jtRound, 0.0f, false);
+		
+		// outside fillet
+		OffsetPolygons(subj, solution, -fillet*precision, jtSquare, 0.0f, false);
+		OffsetPolygons(solution, solution, fillet*precision, jtRound, 0.0f, false);
+		
+	}else{
+		solution = subj;
+	}
+	
+	// remove too many points
+	CleanPolygons(solution, result, 0.001f*precision);
+	
+	
+	for (int s = 0;  s < result.size(); s++) {
+		for (int i =0; i < result[s].size(); i++) {
+			pts->push_back( ofxVec2f((float)result[s][i].X/precision, (float)result[s][i].Y/precision));
+		}
+	}
+	
+}
 
 @implementation TKGearView
 @synthesize centerp;
@@ -22,7 +73,7 @@ using namespace ClipperLib;
     self = [super initWithFrame:frame];
 	
     if (self) {
-
+		
 		self.dimensionView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 1, 600, 10)];
 		[dimensionView setFont:[NSFont systemFontOfSize:11]];
 		[dimensionView setSelectable:NO];
@@ -59,10 +110,10 @@ using namespace ClipperLib;
 	appDel.pressureAngle = 20;
 	appDel.fillet = 0.1f;
 	
-	appDel.rackTeeth = 23;
+	appDel.rackTeeth = 5;
 	appDel.rackClearance = 0;
 	
-	appDel.gearTeeth = 23;
+	appDel.gearTeeth = 11;
 	appDel.gearClearance = 0;
 	appDel.gearHoleDiam = 5;
 	appDel.gearUnderCut = 0;
@@ -157,7 +208,7 @@ using namespace ClipperLib;
 	[pitchCircle lineToPoint:NSMakePoint(0, pitchRadius)];
 	[pitchCircle moveToPoint:NSMakePoint( -pitchRadius, 0)];
 	[pitchCircle lineToPoint:NSMakePoint( pitchRadius, 0)];
-		
+	
 	[pitchCircle transformUsingAffineTransform:scaler];
 	[pitchCircle transformUsingAffineTransform:translation];
 	[pitchCircle setLineWidth:0.5f];
@@ -170,7 +221,7 @@ using namespace ClipperLib;
 	[rackInfo moveToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, -1)];
 	[rackInfo lineToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, 1)];
 	
-
+	
 	// create a gear
 	NSBezierPath * gear = [NSBezierPath bezierPath];
 	[gear appendBezierPath:self.gearPath];
@@ -206,6 +257,8 @@ using namespace ClipperLib;
 	[rackInfo stroke];
 	
 	[[NSColor colorWithCalibratedRed:1 green:.2f blue:.2f alpha:.7f] set];
+	//[gear setLineJoinStyle:NSMiterLineJoinStyle];
+	//[gear setMiterLimit:1000];
 	[gear fill];
 	
 	[[NSColor colorWithCalibratedRed:0 green:.6f blue:0 alpha:.7f] set];
@@ -276,7 +329,6 @@ using namespace ClipperLib;
 		
 		pt = ofxVec2f( xpos + circularPitch, 0) + adden.getRotated(pressureAngle);
 		pts.push_back(pt);
-		
 	}
 	
 	pt = ofxVec2f( numTeeth * circularPitch, 0) + deden.getRotated(pressureAngle);
@@ -285,35 +337,10 @@ using namespace ClipperLib;
 	pt = ofxVec2f( pt.x, -2 *dedendum);
 	pts.push_back(pt);
 	
-	// fillet
-	if(fillet > 0.0f){
-		Clipper clipper;
-		clipper.Clear();
-		Polygons subj(1), solution, solution2, solution3, solution4;
-		for(int i = 0; i < pts.size(); i++){
-			subj[0].push_back(IntPoint(1000.0f*pts[i].x, 1000.0f*pts[i].y));
-		}
-		
-		pts.clear();
-		
-		clipper.AddPolygons(subj, ptSubject);
-		
-		// jtRound,  jtMiter, jtSquare
-		OffsetPolygons(subj, solution, -fillet*1000.0f, jtSquare, 1.0f, true);
-		OffsetPolygons(solution, solution2, fillet*1000.0f, jtRound, 1.0f, true);
-		OffsetPolygons(solution2, solution3, fillet*1000.0f, jtSquare, 1.0f, true);
-		OffsetPolygons(solution3, solution4, -fillet*1000.0f, jtRound, 1.0f, true);
-		
-		for (int s = 0;  s < solution4.size(); s++) {
-			for (int i =0; i < solution4[s].size(); i++) {
-				pts.push_back( ofxVec2f((float)solution4[s][i].X/1000.0f, (float)solution4[s][i].Y/1000.0f));
-			}
-		}
-	}
-	// end fillet
+	applyfillet(&pts, fillet);
 	
 	
-	if(pts.size() >0){
+	if(pts.size() > 0){
 		[rack moveToPoint:NSMakePoint(pts[0].x, pts[0].y)];
 	}
 	for(int i = 0; i  < pts.size(); i++){
@@ -374,13 +401,13 @@ using namespace ClipperLib;
 	std::vector <ofxVec2f> pts;
 	ofxVec2f vec;
 	float rot =  M_PI -angularToothWidthAtBase/2;
-	vec = ofxVec2f(0, baseRadius - dedendum);
+	vec = ofxVec2f(0, baseRadius - dedendum + 10);
 	vec.rotateRad(rot + underCutAngle );
-	pts.push_back(vec);
+	//pts.push_back(vec);
 	
 	
 	for(int a = 0; a < numTeeth; a++){
-		rot = M_PI -angularToothWidthAtBase/2 + (float) a * 2 * M_PI / (float)numTeeth;	
+		rot = M_PI - angularToothWidthAtBase/2 + (float) a * 2 * M_PI / (float)numTeeth;
 		vec = ofxVec2f(0, baseRadius - dedendum);
 		vec.rotateRad(rot + underCutAngle);
 		pts.push_back(vec);
@@ -409,36 +436,10 @@ using namespace ClipperLib;
 		
 		vec = ofxVec2f(0, baseRadius - dedendum).getRotatedRad(angularToothWidthAtBase);
 		vec.rotateRad(rot - underCutAngle);
-		pts.push_back(vec);		
+		pts.push_back(vec);
 	}
 	
-	// fillet
-	if(fillet > 0.0f){
-		Clipper clipper;
-		clipper.Clear();
-		Polygons subj(1), solution, solution2, solution3, solution4;
-		for(int i = 0; i < pts.size(); i++){
-			subj[0].push_back(IntPoint(1000.0f*pts[i].x, 1000.0f*pts[i].y));
-		}
-		
-		pts.clear();
-		
-		clipper.AddPolygons(subj, ptSubject);
-		
-		// jtRound,  jtMiter, jtSquare
-		OffsetPolygons(subj, solution, -fillet*1000.0f, jtSquare, 1.0f, true);
-		OffsetPolygons(solution, solution2, fillet*1000.0f, jtRound, 1.0f, true);
-		OffsetPolygons(solution2, solution3, fillet*1000.0f, jtSquare, 1.0f, true);
-		OffsetPolygons(solution3, solution4, -fillet*1000.0f, jtRound, 1.0f, true);
-		
-		for (int s = 0;  s < solution4.size(); s++) {
-			for (int i =0; i < solution4[s].size(); i++) {
-				pts.push_back( ofxVec2f((float)solution4[s][i].X/1000.0f, (float)solution4[s][i].Y/1000.0f));
-			}
-		}
-	}
-	// end fillet
-	
+	applyfillet(&pts, fillet);
 	
 	if(pts.size() >0){
 		[gear moveToPoint:NSMakePoint(pts[0].x, pts[0].y)];
@@ -460,17 +461,17 @@ using namespace ClipperLib;
 - (void)print:(id)sender{
 	
 	NSRect oldFrame = self.frame;
-
+	
 	// set frame to DIN A4 : 210 mm, 297 mm
 	[self setFrame:NSMakeRect(0, 0, 210.0 * 72.0f / 25.4f, 297.0 * 72.0f / 25.4f)];
 	TKAppDelegate * appDel =  [[NSApplication sharedApplication] delegate];
 	float tscale = appDel.scale;
 	float trot = appDel.rotation;
 	appDel.scale = 1;
-	appDel.rotation=0;
-
+	appDel.rotation = 0;
+	
 	[dimensionView setHidden:NO];
-
+	
 	[super print:sender];
 	
 	// SET BACK
@@ -489,14 +490,9 @@ using namespace ClipperLib;
 
 - (void)magnifyWithEvent:(NSEvent *)event{
 	TKAppDelegate * appDel =  [[NSApplication sharedApplication] delegate];
-	
-	NSSize newSize;
-    newSize.height = self.frame.size.height * ([event magnification] + 1.0);
-    newSize.width = self.frame.size.width * ([event magnification] + 1.0);
-    //[self setFrameSize:newSize];
-	appDel.scale *= 1+[event magnification];
-	appDel.scale = fmaxf(appDel.scale, 1.0f);
-	[self setNeedsDisplay:YES];
+	float scaleDif = (1.0f + [event magnification]);
+	//if( 1.0f + [event magnification] < 1.0f) return;
+	[appDel scaleView: scaleDif];
 }
 
 - (void)rotateWithEvent:(NSEvent *)event{
