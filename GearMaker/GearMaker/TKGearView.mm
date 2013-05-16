@@ -17,7 +17,6 @@ using namespace ClipperLib;
 
 void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	
-	
 	float precision = 1000.0f; // scale the values for better precision
 	
 	Clipper clipper;
@@ -53,7 +52,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	}
 	
 	// remove too many points
-	CleanPolygons(solution, result, 0.001f*precision);
+	CleanPolygons(solution, result); //, 0.002f*precision);
 	
 	
 	for (int s = 0;  s < result.size(); s++) {
@@ -220,7 +219,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	[rackInfo lineToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, 0)];
 	[rackInfo moveToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, -1)];
 	[rackInfo lineToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, 1)];
-	
+	[rackInfo setLineWidth:0.5f];
 	
 	// create a gear
 	NSBezierPath * gear = [NSBezierPath bezierPath];
@@ -252,9 +251,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	
 	
 	// ACTUAL DRAWING
-	[[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f] set];
-	[pitchCircle stroke];
-	[rackInfo stroke];
+	
 	
 	[[NSColor colorWithCalibratedRed:1 green:.2f blue:.2f alpha:.7f] set];
 	//[gear setLineJoinStyle:NSMiterLineJoinStyle];
@@ -264,7 +261,15 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	[[NSColor colorWithCalibratedRed:0 green:.6f blue:0 alpha:.7f] set];
 	[rack fill];
 	
-	if(![[NSGraphicsContext currentContext] isDrawingToScreen]){
+	if([[NSGraphicsContext currentContext] isDrawingToScreen]){
+		// SCREEN
+		[[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f] set];
+		[pitchCircle stroke];
+		[rackInfo stroke];
+		
+	}else{
+		
+		// PRINT
 		NSBezierPath * pageEdges = [NSBezierPath bezierPathWithRect:dirtyRect];
 		[[NSColor grayColor] set];
 		[pageEdges stroke];
@@ -469,13 +474,14 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	float trot = appDel.rotation;
 	appDel.scale = 1;
 	appDel.rotation = 0;
-	
+	NSPoint pt = self.centerp;
+	self.centerp = NSMakePoint(0, 0);
 	[dimensionView setHidden:NO];
 	
 	[super print:sender];
 	
 	// SET BACK
-	
+	self.centerp = pt;
 	[self setFrame:oldFrame];
 	appDel.scale = tscale;
 	appDel.rotation=trot;
