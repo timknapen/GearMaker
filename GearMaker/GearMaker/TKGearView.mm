@@ -14,9 +14,33 @@
 #include "clipper.hpp"
 using namespace ClipperLib;
 
+void reducePoints( std::vector<ofxVec2f> *pts, float minDist){
+	// remove points that are not far enough from each other
+	float mDist = minDist * minDist;
+	
+	if(pts->size() < 2) return;
+	
+	std::vector < ofxVec2f > newpts;
+	newpts.push_back(pts->at(0));
+	
+	ofxVec2f lastPt = newpts[0];
+	for (int i = 1; i < pts->size(); i++) {
+		if( ((pts->at(i).x -  lastPt.x) * (pts->at(i).x -  lastPt.x)
+			 + (pts->at(i).y -  lastPt.y) * (pts->at(i).y -  lastPt.y)) > mDist){
+			newpts.push_back(pts->at(i));
+			lastPt = newpts.at(newpts.size()-1);
+		}
+	}
+	
+	// swap the vectors
+	pts->clear();
+	*pts = newpts;
+	
+}
 
 void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	
+	if(fillet < 0.1f) return;
 	float precision = 1000.0f; // scale the values for better precision
 	
 	Clipper clipper;
@@ -33,27 +57,26 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	if(!Orientation(subj[0])){
 		ReversePolygon(subj[0]);
 	}
-
-	if(fillet > 0.0f){
-		
-		// Join types:  jtRound,  jtMiter, jtSquare
-		// void OffsetPolygons( in_polys, out_polys, delta,  jointype, MiterLimit, AutoFix)
-		
-		// inside fillet
-		OffsetPolygons(subj, solution, fillet*precision, jtSquare, 0.0f, false);
-		OffsetPolygons(solution, subj, -fillet*precision, jtRound, 0.0f, false);
-		
-		// outside fillet
-		OffsetPolygons(subj, solution, -fillet*precision, jtSquare, 0.0f, false);
-		OffsetPolygons(solution, solution, fillet*precision, jtRound, 0.0f, false);
-		
-	}else{
-		solution = subj;
-	}
+	
+	
+	
+	// Join types:  jtRound,  jtMiter, jtSquare
+	// void OffsetPolygons( in_polys, out_polys, delta,  jointype, MiterLimit, AutoFix)
+	
+	// inside fillet
+	OffsetPolygons(subj, solution, fillet*precision, jtSquare, 0.0f, false);
+	OffsetPolygons(solution, subj, -fillet*precision, jtRound, 0.0f, false);
+	
+	// outside fillet
+	OffsetPolygons(subj, solution, -fillet*precision, jtSquare, 0.0f, false);
+	OffsetPolygons(solution, subj, fillet*precision, jtRound, 0.0f, false);
+	
+	
 	
 	// remove too many points
-	CleanPolygons(solution, result); //, 0.002f*precision);
+	// CleanPolygons(subj, result); //, 0.002f*precision); //<<< IS BUGGY, DO IT MYSELF!!
 	
+	result = subj;
 	
 	for (int s = 0;  s < result.size(); s++) {
 		for (int i =0; i < result[s].size(); i++) {
@@ -61,7 +84,10 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 		}
 	}
 	
+	reducePoints(pts, 0.01f); // 0.01 mm
+
 }
+
 
 @implementation TKGearView
 @synthesize centerp;
