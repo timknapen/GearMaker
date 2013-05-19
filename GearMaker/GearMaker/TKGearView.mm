@@ -91,7 +91,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 
 @implementation TKGearView
 @synthesize centerp;
-@synthesize dimensionView, pitchRadiusView, rackInfoView, gearPathA, gearPathB, rackPath;
+@synthesize dimensionView, distanceView, pitchRadiusView, pitchRadiusBView, rackInfoView, gearPathA, gearPathB, rackPath;
 
 - (id)initWithFrame:(NSRect)frame
 {
@@ -99,27 +99,44 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	
     if (self) {
 		
-		self.dimensionView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 1, 600, 10)];
+		self.distanceView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 100, 10)];
+		[distanceView setFont:[NSFont systemFontOfSize:11]];
+		[distanceView setSelectable:NO];
+		[distanceView setDrawsBackground:NO];
+		[distanceView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:0 alpha:.5f]];
+		
+		self.dimensionView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 1, 100, 10)];
 		[dimensionView setFont:[NSFont systemFontOfSize:11]];
 		[dimensionView setSelectable:NO];
 		[dimensionView setDrawsBackground:NO];
-		[dimensionView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f]];
+		[dimensionView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:0 alpha:.5f]];
 		[dimensionView setString: @"10mm"];
 		[dimensionView setHidden:YES];
 		
-		self.pitchRadiusView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 500, 10)];
+		self.pitchRadiusView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 100, 10)];
 		[pitchRadiusView setFont:[NSFont systemFontOfSize:11]];
 		[pitchRadiusView setSelectable:NO];
 		[pitchRadiusView setDrawsBackground:NO];
-		[pitchRadiusView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f]];
+		[pitchRadiusView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:0 alpha:.5f]];
 		
-		self.rackInfoView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 500, 10)];
+		
+		self.pitchRadiusBView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 100, 10)];
+		[pitchRadiusBView setFont:[NSFont systemFontOfSize:11]];
+		[pitchRadiusBView setSelectable:NO];
+		[pitchRadiusBView setDrawsBackground:NO];
+		[pitchRadiusBView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:0 alpha:.5f]];
+		
+		self.rackInfoView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 100, 10)];
 		[rackInfoView setFont:[NSFont systemFontOfSize:11]];
 		[rackInfoView setSelectable:NO];
 		[rackInfoView setDrawsBackground:NO];
-		[rackInfoView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f]];
+		[rackInfoView setTextColor:[NSColor  colorWithCalibratedRed:0 green:0 blue:0 alpha:.5f]];
+		
+		[self addSubview:distanceView];
 		[self addSubview:dimensionView];
 		[self addSubview:pitchRadiusView];
+		[self addSubview:pitchRadiusBView];
+
 		[self addSubview:rackInfoView];
 		centerp = NSMakePoint(0, 0);
 		[self setAcceptsTouchEvents:YES];
@@ -184,19 +201,26 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	float pitchRadiusB =  appDel.gearBTeeth * circularPitch  / (2.0 * M_PI);
 	[pitchRadiusView setString: [NSString stringWithFormat:@"Circular pitch\n%.2fmm\n\nPitch radius\n%.2fmm",circularPitch, pitchRadiusA]];
 	[pitchRadiusView setFrameOrigin: NSMakePoint( self.frame.size.width/2 + centerp.x + pitchRadiusA * fscale,
-												 self.frame.size.height/2 + centerp.y - pitchRadiusView.frame.size.height/2 )];
+												  self.frame.size.height/2 + centerp.y + fscale * pitchRadiusA / 2 - pitchRadiusView.frame.size.height/2 )];
+	
+	[pitchRadiusBView setString: [NSString stringWithFormat:@"Pitch radius\n%.2fmm", pitchRadiusB]];
+	[pitchRadiusBView setFrameOrigin: NSMakePoint( self.frame.size.width/2 + centerp.x + ( pitchRadiusB  ) * fscale,
+												 self.frame.size.height/2 + centerp.y + fscale * (pitchRadiusA + pitchRadiusB / 2) - pitchRadiusBView.frame.size.height/2 )];
 	
 	
 	// move the rack along with the gear rotation
 	NSAffineTransform * motion = [NSAffineTransform transform];
-	[motion translateXBy: -((appDel.rackTeeth-1-0.75f) * appDel.pitch) + pitchRadiusA* (M_PI * appDel.rotation/ 180.0f) yBy:-pitchRadiusA];
+	[motion translateXBy: -((appDel.rackTeeth - 0.75f) * appDel.pitch) + pitchRadiusA* (M_PI * appDel.rotation/ 180.0f)
+					 yBy:-pitchRadiusA];
 	
 	[rackInfoView setString:[NSString stringWithFormat:@"Rack width\n%.2fmm", appDel.rackTeeth * appDel.pitch]];
 	[rackInfoView setFrameOrigin: NSMakePoint( self.frame.size.width/2
-											  + fscale * ( (1+0.75f)*appDel.pitch + pitchRadiusA * (M_PI * appDel.rotation/ 180.0f))+centerp.x,
+											  + fscale * ( 0.75f*appDel.pitch + pitchRadiusA * (M_PI * appDel.rotation/ 180.0f))+centerp.x,
 											  self.frame.size.height/2 - fscale*pitchRadiusA + centerp.y - 22)];
 	
-	
+	[distanceView setString:[NSString stringWithFormat:@"Distance\n%.2fmm", pitchRadiusA + pitchRadiusB]];
+	[distanceView setFrameOrigin:NSMakePoint(centerp.x + self.frame.size.width/2 + fscale * 3,
+											centerp.y + self.frame.size.height/2 + fscale * (pitchRadiusB +pitchRadiusA))];
 	NSAffineTransform * translation = [NSAffineTransform transform];
 	[translation translateXBy:self.frame.size.width/2 yBy:self.frame.size.height/2];
 	[translation translateXBy:self.centerp.x yBy:self.centerp.y];
@@ -211,74 +235,71 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 		[rotationB rotateByDegrees:-(((360.0f/(2.0f*(float)appDel.gearATeeth))  * pitchRadiusA) / pitchRadiusB )];
 	}
 	
+	// pitch line
+	NSBezierPath * pitchLine = [NSBezierPath bezierPath];
+	[pitchLine moveToPoint:NSMakePoint(-pitchRadiusB, 0)];
+	[pitchLine lineToPoint:NSMakePoint(pitchRadiusB, 0)];
+	NSAffineTransform * pressureAngleRot = [NSAffineTransform transform];
+	[pressureAngleRot translateXBy:0 yBy:pitchRadiusA];
+	[pressureAngleRot rotateByDegrees:appDel.pressureAngle];
+	[pitchLine transformUsingAffineTransform:pressureAngleRot];
+	 
 	
 	// reference sizes
 	NSBezierPath * pitchCircle = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(-pitchRadiusA,
 																				   -pitchRadiusA,
 																				   2*pitchRadiusA,
 																				   2*pitchRadiusA)];
-	/*
-	 for(int i = 0; i <= (int)pitchRadiusA; i++){
-		[pitchCircle moveToPoint:NSMakePoint(i, .5)];
-		[pitchCircle lineToPoint:NSMakePoint(i, -.5)];
-		[pitchCircle moveToPoint:NSMakePoint(-i, .5)];
-		[pitchCircle lineToPoint:NSMakePoint(-i, -.5)];
-		[pitchCircle moveToPoint:NSMakePoint(.5, i)];
-		[pitchCircle lineToPoint:NSMakePoint(-.5, i)];
-		[pitchCircle moveToPoint:NSMakePoint(.5, -i)];
-		[pitchCircle lineToPoint:NSMakePoint(-.5, -i)];
-		if( i % 10 == 0){
-			[pitchCircle moveToPoint:NSMakePoint(i, pitchRadiusA)];
-			[pitchCircle lineToPoint:NSMakePoint(i, -pitchRadiusA)];
-			[pitchCircle moveToPoint:NSMakePoint(-i, pitchRadiusA)];
-			[pitchCircle lineToPoint:NSMakePoint(-i, -pitchRadiusA)];
-			[pitchCircle moveToPoint:NSMakePoint(pitchRadiusA, i)];
-			[pitchCircle lineToPoint:NSMakePoint(-pitchRadiusA, i)];
-			[pitchCircle moveToPoint:NSMakePoint(pitchRadiusA, -i)];
-			[pitchCircle lineToPoint:NSMakePoint(-pitchRadiusA, -i)];
-		}
-	}
-	 */
+
 	// show pitch
-	[pitchCircle moveToPoint:NSMakePoint(pitchRadiusA - 1, -circularPitch/2)];
-	[pitchCircle lineToPoint:NSMakePoint(pitchRadiusA + 1, -circularPitch/2)];
+	[pitchCircle moveToPoint:NSMakePoint(pitchRadiusA - .5f, 0)];
+	[pitchCircle lineToPoint:NSMakePoint(pitchRadiusA + .5f, 0)];
+	[pitchCircle moveToPoint:NSMakePoint(pitchRadiusA , 0)];
+	[pitchCircle lineToPoint:NSMakePoint(pitchRadiusA , pitchRadiusA)];
+	[pitchCircle moveToPoint:NSMakePoint(pitchRadiusA - .5f, pitchRadiusA)];
+	[pitchCircle lineToPoint:NSMakePoint(pitchRadiusA + .5f, pitchRadiusA)];
 	
-	[pitchCircle moveToPoint:NSMakePoint(pitchRadiusA - 1, circularPitch/2)];
-	[pitchCircle lineToPoint:NSMakePoint(pitchRadiusA + 1, circularPitch/2)];
-	
-	[pitchCircle moveToPoint:NSMakePoint(0, -1)];
-	[pitchCircle lineToPoint:NSMakePoint(0, 1)];
-	[pitchCircle moveToPoint:NSMakePoint( -1, 0)];
-	[pitchCircle lineToPoint:NSMakePoint( 1, 0)];
+	// center A
+	[pitchCircle moveToPoint:NSMakePoint(0, -.5f)];
+	[pitchCircle lineToPoint:NSMakePoint(0, .5f)];
+	[pitchCircle moveToPoint:NSMakePoint( -.5f, 0)];
+	[pitchCircle lineToPoint:NSMakePoint( .5f, 0)];
 	
 	// show distance
-	[pitchCircle moveToPoint:NSMakePoint(0, 0)];
-	[pitchCircle lineToPoint:NSMakePoint(2*pitchRadiusA, 0)];
-	[pitchCircle lineToPoint:NSMakePoint(2*pitchRadiusA, pitchRadiusA + pitchRadiusB )];
-	[pitchCircle lineToPoint:NSMakePoint( 0, pitchRadiusA + pitchRadiusB )];
+	[pitchCircle moveToPoint:NSMakePoint( 2 - .5f, 0)];
+	[pitchCircle lineToPoint:NSMakePoint( 2 + .5f, 0)];
+	[pitchCircle lineToPoint:NSMakePoint( 2, 0)];
+	[pitchCircle lineToPoint:NSMakePoint( 2, pitchRadiusA + pitchRadiusB )];
+	[pitchCircle lineToPoint:NSMakePoint( 2 - .5f, pitchRadiusA + pitchRadiusB )];
+	[pitchCircle lineToPoint:NSMakePoint( 2 + .5f, pitchRadiusA + pitchRadiusB )];
 
 	// gear B
 	[pitchCircle appendBezierPathWithOvalInRect:NSMakeRect(-pitchRadiusB,
 														   pitchRadiusA + pitchRadiusB -pitchRadiusB,
 														   2*pitchRadiusB,
 														   2*pitchRadiusB)];
-	[pitchCircle moveToPoint:NSMakePoint(0, pitchRadiusA + pitchRadiusB - 1)];
-	[pitchCircle lineToPoint:NSMakePoint(0, pitchRadiusA + pitchRadiusB + 1)];
-	[pitchCircle moveToPoint:NSMakePoint( -1, pitchRadiusA + pitchRadiusB)];
-	[pitchCircle lineToPoint:NSMakePoint( 1, pitchRadiusA + pitchRadiusB)];
-	
-	
+	[pitchCircle moveToPoint:NSMakePoint(0, pitchRadiusA + pitchRadiusB - .5f)];
+	[pitchCircle lineToPoint:NSMakePoint(0, pitchRadiusA + pitchRadiusB + .5f)];
+	[pitchCircle moveToPoint:NSMakePoint( -.5f, pitchRadiusA + pitchRadiusB)];
+	[pitchCircle lineToPoint:NSMakePoint( .5f, pitchRadiusA + pitchRadiusB)];
+	[pitchCircle moveToPoint:NSMakePoint(pitchRadiusB - .5f, pitchRadiusA + pitchRadiusB)];
+	[pitchCircle lineToPoint:NSMakePoint(pitchRadiusB + .5f, pitchRadiusA + pitchRadiusB)];
+	[pitchCircle moveToPoint:NSMakePoint(pitchRadiusB , pitchRadiusA + pitchRadiusB)];
+	[pitchCircle lineToPoint:NSMakePoint(pitchRadiusB , pitchRadiusA  )];
+	[pitchCircle moveToPoint:NSMakePoint(pitchRadiusB - .5f, pitchRadiusA)];
+	[pitchCircle lineToPoint:NSMakePoint(pitchRadiusB + .5f, pitchRadiusA)];
+	[pitchCircle appendBezierPath:pitchLine];
 	[pitchCircle transformUsingAffineTransform:scaler];
 	[pitchCircle transformUsingAffineTransform:translation];
 	[pitchCircle setLineWidth:0.5f];
 	
 	NSBezierPath * rackInfo = [NSBezierPath bezierPath];
-	[rackInfo moveToPoint:NSMakePoint(0, -1)];
-	[rackInfo lineToPoint:NSMakePoint(0, 1)];
+	[rackInfo moveToPoint:NSMakePoint(0, -.5f)];
+	[rackInfo lineToPoint:NSMakePoint(0, .5f)];
 	[rackInfo moveToPoint:NSMakePoint(0, 0)];
 	[rackInfo lineToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, 0)];
-	[rackInfo moveToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, -1)];
-	[rackInfo lineToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, 1)];
+	[rackInfo moveToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, -.5f)];
+	[rackInfo lineToPoint:NSMakePoint(appDel.rackTeeth * appDel.pitch, .5f)];
 	[rackInfo setLineWidth:0.5f];
 	
 	// create a gear
@@ -292,12 +313,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	// create a second gear
 	NSBezierPath * gearB = [NSBezierPath bezierPath];
 	[gearB appendBezierPath:self.gearPathB];
-	
-	
-
 	[gearB transformUsingAffineTransform:rotationB];
-
-	//[gearB transformUsingAffineTransform:translation];
 	NSAffineTransform * translationGearB = [NSAffineTransform transform];
 	[translationGearB translateXBy:0 yBy:pitchRadiusB + pitchRadiusA];
 	[gearB transformUsingAffineTransform:translationGearB];
@@ -307,23 +323,17 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	// create the rack
 	NSBezierPath * rack = [NSBezierPath bezierPath];
 	[rack appendBezierPath:rackPath];
-	
 	[rack transformUsingAffineTransform:motion];
 	[rack transformUsingAffineTransform:scaler];
 	[rack transformUsingAffineTransform:translation];
-	
 	
 	[rackInfo transformUsingAffineTransform:motion];
 	[rackInfo transformUsingAffineTransform:scaler];
 	[rackInfo transformUsingAffineTransform:translation];
 	
 	
-
-	
 	
 	// ACTUAL DRAWING
-	
-	
 	[[NSColor colorWithCalibratedRed:1 green:.2f blue:.2f alpha:.7f] set];
 	[gearA fill];
 	
@@ -335,7 +345,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	
 	if([[NSGraphicsContext currentContext] isDrawingToScreen]){
 		// SCREEN
-		[[NSColor  colorWithCalibratedRed:0 green:0 blue:1 alpha:.5f] set];
+		[[NSColor  colorWithCalibratedRed:0 green:0 blue:0 alpha:.5f] set];
 		[pitchCircle stroke];
 		[rackInfo stroke];
 		

@@ -13,8 +13,11 @@
 {
 }
 @property NSPoint centerp;
+@property (strong) NSTextView * distanceView;
 @property (strong) NSTextView * dimensionView;
 @property (strong) NSTextView * pitchRadiusView;
+@property (strong) NSTextView * pitchRadiusBView;
+
 @property (strong) NSTextView * rackInfoView;
 @property (strong) NSBezierPath * gearPathA;
 @property (strong) NSBezierPath * gearPathB;
