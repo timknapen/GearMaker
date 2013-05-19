@@ -23,11 +23,17 @@
 @property int rackTeeth;
 @property float rackClearance;
 
-// GEAR
-@property int gearTeeth;
-@property float	gearClearance;
-@property float gearHoleDiam;
-@property float gearUnderCut;
+// GEAR A
+@property int gearATeeth;
+@property float	gearAClearance;
+@property float gearAHoleDiam;
+@property float gearAUndercut;
+
+// GEAR B
+@property int gearBTeeth;
+@property float	gearBClearance;
+@property float gearBHoleDiam;
+@property float gearBUndercut;
 
 
 // interface

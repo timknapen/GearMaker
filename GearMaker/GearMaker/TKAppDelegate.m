@@ -12,7 +12,8 @@
 @synthesize gearView;
 @synthesize pitch,  pressureAngle, fillet,
 rackClearance, rackTeeth,
-gearTeeth, gearClearance, gearHoleDiam, gearUnderCut,
+gearATeeth, gearAClearance, gearAHoleDiam, gearAUndercut,
+gearBTeeth, gearBClearance, gearBHoleDiam, gearBUndercut,
 scale, rotation;
 
 - (void)awakeFromNib{

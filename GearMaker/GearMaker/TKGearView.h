@@ -16,7 +16,8 @@
 @property (strong) NSTextView * dimensionView;
 @property (strong) NSTextView * pitchRadiusView;
 @property (strong) NSTextView * rackInfoView;
-@property (strong) NSBezierPath * gearPath;
+@property (strong) NSBezierPath * gearPathA;
+@property (strong) NSBezierPath * gearPathB;
 @property (strong) NSBezierPath * rackPath;
 
 - (NSBezierPath *) involuteRackWithTeeth:(int)numTeeth
@@ -34,8 +35,9 @@
 								  fillet:(float)fillet;
 
 - (IBAction)updateView:(id)sender;
-- (IBAction)updateBoth:(id)sender;
-- (IBAction)updateGear:(id)sender;
+- (IBAction)updateAll:(id)sender;
+- (IBAction)updateGearA:(id)sender;
+- (IBAction)updateGearB:(id)sender;
 - (IBAction)updateRack:(id)sender;
 
 
