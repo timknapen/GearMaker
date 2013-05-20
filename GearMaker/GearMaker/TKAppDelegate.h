@@ -8,6 +8,9 @@
 
 #import <Cocoa/Cocoa.h>
 #import "TKGearView.h"
+
+#define POINT_TO_MM 72.0 / 25.4
+
 @interface TKAppDelegate : NSObject <NSApplicationDelegate>
 
 @property (assign) IBOutlet NSWindow *window;
@@ -49,4 +52,9 @@
 - (NSString *)createSVGPathFromPath:(NSBezierPath *)path
 						  fillColor:(NSString *) fill
 						strokeColor:(NSString *) stroke;
+
+- (NSString *)createSVGPathFromPath:(NSBezierPath *)path
+						  fillColor:(NSString *) fill
+						strokeColor:(NSString *) stroke
+						strokeWidth:(float) strokeWidth;
 @end
