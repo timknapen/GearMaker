@@ -56,5 +56,142 @@ scale, rotation;
 	[gearView setNeedsDisplay:YES];
 }
 
+- (IBAction)saveToSVG:(id)sender {
+	
+	NSSavePanel * savePanel = [NSSavePanel savePanel];
+	[savePanel setAllowedFileTypes:[NSArray arrayWithObject:@"svg"]];
+	[savePanel setTitle:@"Save to SVG"];
+	if([savePanel runModal] == NSFileHandlingPanelOKButton){	
+		NSMutableString * svgString = [[NSMutableString alloc] initWithString:@"<?xml version=\"1.0\" encoding=\"utf-8\" ?> \
+									   <!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">"];
+	
+		[svgString appendFormat:@" <svg version=\"1.0\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\" width=\"%.3fpx\" height=\"%.3fpx\" viewBox=\"0 0 %.3f %.3f\" >",
+			210.0 * 72.0 / 25.4,
+			297.0 * 72.0 / 25.4,
+			210.0 * 72.0 / 25.4,
+			297.0 * 72.0 / 25.4];
+		
+	
+		
+		NSAffineTransform * scaleToMM = [NSAffineTransform transform];
+		[scaleToMM scaleXBy:72.0 / 25.4 yBy:-72.0 / 25.4]; // flipped Y axis!
+		
+		NSAffineTransform * center = [NSAffineTransform transform];
+		[center translateXBy:210.0/2 yBy: -297.0/2 ]; // flipped Y axis!
+		
+		NSAffineTransform * gearBPosition = [NSAffineTransform transform];
+		// calculate gearRadius
+		float circularPitch = pitch;
+		float pitchRadiusA = gearATeeth * circularPitch  / (2.0 * M_PI);
+		float pitchRadiusB = gearBTeeth * circularPitch  / (2.0 * M_PI);
+		[gearBPosition translateXBy:0 yBy:pitchRadiusA + pitchRadiusB];
+		
+		NSAffineTransform * gearBRotation = [NSAffineTransform transform];
+		if(gearATeeth % 2 == 0){
+			// EVEN number of teeth => half a pitch angle added!
+			[gearBRotation rotateByDegrees:-(((360.0f/(2.0f*(float)gearATeeth))  * pitchRadiusA) / pitchRadiusB )];
+		}
+		
+		NSAffineTransform * rackPosition = [NSAffineTransform transform];
+		[rackPosition translateXBy: - rackTeeth * circularPitch +  0.75f * pitch yBy:-pitchRadiusA];
+
+		// add a reference square of 10 x 10mm
+		NSBezierPath * refSquare = [NSBezierPath bezierPathWithRect:NSMakeRect(0, 0, 10, -10)]; // flipped Y axis
+		[refSquare transformUsingAffineTransform:scaleToMM];
+		
+		NSBezierPath * gearA = [NSBezierPath bezierPath];
+		[gearA appendBezierPath:[gearView gearPathA]];
+		[gearA transformUsingAffineTransform:center];
+		[gearA transformUsingAffineTransform:scaleToMM];
+
+		NSBezierPath * gearB =  [NSBezierPath bezierPath];
+		[gearB appendBezierPath:[gearView gearPathB]];
+		[gearB transformUsingAffineTransform:gearBRotation];
+		[gearB transformUsingAffineTransform:center];
+		[gearB transformUsingAffineTransform:gearBPosition];
+		[gearB transformUsingAffineTransform:scaleToMM];
+		
+		
+		NSBezierPath * rack =  [NSBezierPath bezierPath];
+		[rack appendBezierPath:[gearView rackPath]];
+		[rack transformUsingAffineTransform:center];
+		[rack transformUsingAffineTransform:rackPosition];
+		[rack transformUsingAffineTransform:scaleToMM];
+
+		
+		[svgString appendString:[self createSVGPathFromPath:refSquare
+												  fillColor:@"none"
+												strokeColor:@"#0000FF"]];
+		
+		[svgString appendString:[self createSVGPathFromPath:gearA
+												  fillColor:@"#FF6666"
+												strokeColor:@"none"]];
+		
+		
+		[svgString appendString:[self createSVGPathFromPath:gearB
+												  fillColor:@"#3333FF"
+												strokeColor:@"none"]];
+		
+		[svgString appendString:[self createSVGPathFromPath:rack
+												  fillColor:@"#66CC66"
+												strokeColor:@"none"]];
+		
+		// add text info
+		[svgString appendString:@"<text fill=\"gray\" font-size=\"8\">"];
+		[svgString appendFormat:@"<tspan x=\"50\" dy=\"1.2em\">Circular pitch = %.2fmm, Pressure Angle = %.2f°, Rounding = %.2fmm</tspan>", pitch, pressureAngle, fillet];
+		[svgString appendFormat:@"<tspan x=\"50\" dy=\"1.2em\">Blue Gear: Teeth = %d, Pitch Radius = %.2fmm</tspan>", gearBTeeth, pitchRadiusB];
+		[svgString appendFormat:@"<tspan x=\"50\" dy=\"1.2em\">Red Gear: Teeth = %d, Pitch Radius = %.2fmm</tspan>", gearATeeth, pitchRadiusA];
+		[svgString appendFormat:@"<tspan x=\"50\" dy=\"1.2em\">Rack: Teeth = %d, Width = %.2fmm</tspan>", rackTeeth,  rackTeeth * circularPitch];
+		[svgString appendString:@"</text>"];
+
+		[svgString appendString:@"</svg>"];
+		[svgString writeToURL:[savePanel URL] atomically:YES encoding:NSUTF8StringEncoding error:nil];
+	}
+	
+	
+}
+
+- (NSString *)createSVGPathFromPath:(NSBezierPath *)path
+						  fillColor:(NSString *) fill
+						strokeColor:(NSString *) stroke{
+	
+	
+	NSMutableString * pathString = [[NSMutableString alloc] init];
+	[pathString appendFormat:@"<path fill=\"%@\" stroke=\"%@\" d=\"", fill, stroke];
+	
+	NSPoint pts[3];
+	pts[0] = pts[1] = pts[2] = NSMakePoint(0, 0);
+	pts[1] = NSMakePoint(0, 0);
+	pts[2] = NSMakePoint(0, 0);
+	NSBezierPathElement el;
+	
+	for (int i = 0; i < [path elementCount]; i++ ) {
+		
+		el = [path elementAtIndex:i associatedPoints:pts];
+		switch (el) {
+			case NSMoveToBezierPathElement:
+				[pathString appendFormat:@"M%.3f,%.3f", pts[0].x, pts[0].y];
+				break;
+			case NSLineToBezierPathElement:
+				[pathString appendFormat:@"L%.3f,%.3f", pts[0].x, pts[0].y];
+				break;
+			case NSCurveToBezierPathElement:
+				[pathString appendFormat:@"C%.3f,%.3f,%.3f,%.3f,%.3f,%.3f", pts[0].x, pts[0].y, pts[1].x, pts[1].y, pts[2].x, pts[2].y];
+				break;
+			case NSClosePathBezierPathElement:
+				[pathString appendFormat:@"Z"];
+				break;
+			default: // should never happen
+				NSLog(@"mysterious path element? %ld", el);
+				break;
+		}
+	}
+	// close path tag
+	[pathString appendString:@"\"/>"];
+	
+	return pathString;
+	
+}
+
 
 @end

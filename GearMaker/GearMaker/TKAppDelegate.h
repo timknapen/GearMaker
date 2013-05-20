@@ -44,4 +44,9 @@
 - (IBAction)zoomNormal:(id)sender;
 - (void) scaleView:(float)scaleDif;
 
+
+- (IBAction)saveToSVG:(id)sender;
+- (NSString *)createSVGPathFromPath:(NSBezierPath *)path
+						  fillColor:(NSString *) fill
+						strokeColor:(NSString *) stroke;
 @end
