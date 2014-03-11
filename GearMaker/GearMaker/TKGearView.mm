@@ -44,7 +44,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	float precision = 1000.0f; // scale the values for better precision
 	
 	Clipper clipper;
-	Polygons subj(1), solution(1), result(1);
+	Paths subj(1), solution(1), result(1);
 	
 	for(int i = 0; i < pts->size(); i++){
 		subj[0].push_back(IntPoint(precision*(*pts)[i].x, precision*(*pts)[i].y));
@@ -52,10 +52,10 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	
 	pts->clear();
 	
-	
-	clipper.AddPolygons(subj, ptSubject);
+    
+	clipper.AddPaths(subj, ptSubject, true);
 	if(!Orientation(subj[0])){
-		ReversePolygon(subj[0]);
+		ReversePath(subj[0]);
 	}
 	
 	
@@ -63,14 +63,46 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	// Join types:  jtRound,  jtMiter, jtSquare
 	// void OffsetPolygons( in_polys, out_polys, delta,  jointype, MiterLimit, AutoFix)
 	
-	// inside fillet
-	OffsetPolygons(subj, solution, fillet*precision, jtSquare, 0.0f, false);
-	OffsetPolygons(solution, subj, -fillet*precision, jtRound, 0.0f, false);
+    
+    /*
+     
+     void AddPath(const Path& path, JoinType joinType, EndType endType);
+     void AddPaths(const Paths& paths, JoinType joinType, EndType endType);
+     void Execute(Paths& solution, double delta);
+     
+     */
+    ClipperOffset clipperOffset;
+    
+    // inside fillet
+    clipperOffset.AddPaths(subj, jtSquare, etClosedPolygon); // add the paths
+    clipperOffset.Execute(solution, fillet*precision);
+    clipperOffset.Clear();
+    clipperOffset.AddPaths(solution, jtRound, etClosedPolygon);
+    clipperOffset.Execute(subj, -fillet*precision);
+    
+    CleanPolygons(subj);
+
+    // outside fillet
+    clipperOffset.Clear();
+    clipperOffset.AddPaths(subj, jtSquare, etClosedPolygon); // add the paths
+    clipperOffset.Execute(solution, -fillet*precision);
+    clipperOffset.Clear();
+    clipperOffset.AddPaths(solution, jtRound, etClosedPolygon);
+    clipperOffset.Execute(subj, fillet*precision);
+    
+    CleanPolygons(subj);
+
+    
+    /* 
+    //OLD VERSION :
+    // inside fillet
+	OffsetPaths(subj, solution, fillet*precision, jtSquare, 0.0f, false);
+	OffsetPaths(solution, subj, -fillet*precision, jtRound, 0.0f, false);
 	
 	// outside fillet
-	OffsetPolygons(subj, solution, -fillet*precision, jtSquare, 0.0f, false);
-	OffsetPolygons(solution, subj, fillet*precision, jtRound, 0.0f, false);
-	
+	OffsetPaths(subj, solution, -fillet*precision, jtSquare, 0.0f, false);
+	OffsetPaths(solution, subj, fillet*precision, jtRound, 0.0f, false);
+	*/
 	
 	
 	// remove too many points
@@ -401,7 +433,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	ofxVec2f pt;
 	
 	std::vector <ofxVec2f> pts;
-	pts.push_back(ofxVec2f(0, -2*dedendum));
+	pts.push_back(ofxVec2f(0, -7 )); // bottom of the rack
 	
 	for(int i =0; i < numTeeth; i++){
 		float xpos = (float)i * circularPitch;
@@ -422,7 +454,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	pt = ofxVec2f( numTeeth * circularPitch, 0) + deden.getRotated(pressureAngle);
 	pts.push_back(pt);
 	
-	pt = ofxVec2f( pt.x, -2 *dedendum);
+	pt = ofxVec2f( pt.x, -7 ); // bottom of the rack
 	pts.push_back(pt);
 	
 	applyfillet(&pts, fillet);
