@@ -662,4 +662,12 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	return YES;
 }
 
+- (BOOL)acceptsFirstResponder{
+    return YES;
+}
+
+- (void)keyDown:(NSEvent *)theEvent{
+    // nothing
+}
+
 @end
