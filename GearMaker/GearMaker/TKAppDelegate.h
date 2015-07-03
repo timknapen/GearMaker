@@ -11,7 +11,7 @@
 
 #define POINT_TO_MM 72.0 / 25.4
 
-@interface TKAppDelegate : NSObject <NSApplicationDelegate>
+@interface TKAppDelegate : NSObject <NSApplicationDelegate, NSTextFieldDelegate>
 
 @property (assign) IBOutlet NSWindow *window;
 @property (weak) IBOutlet TKGearView *gearView;
@@ -57,4 +57,15 @@
 						  fillColor:(NSString *) fill
 						strokeColor:(NSString *) stroke
 						strokeWidth:(float) strokeWidth;
+
+#pragma mark textfieldDelegate
+
+/*
+-(NSArray *) control:(NSControl *)control
+			textView:(NSTextView *)textView
+		 completions:(NSArray *)words
+ forPartialWordRange:(NSRange)charRange
+ indexOfSelectedItem:(NSInteger *)index;
+*/
+
 @end

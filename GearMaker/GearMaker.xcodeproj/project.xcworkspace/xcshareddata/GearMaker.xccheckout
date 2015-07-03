@@ -10,29 +10,29 @@
 	<string>GearMaker</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>91CDB335-0DBB-47D0-8462-0D7C1A6276E5</key>
+		<key>A7EE266C132489CFD398A4B8827160D0D3DC1E57</key>
 		<string>https://github.com/timknapen/GearMaker.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>GearMaker/GearMaker.xcodeproj/project.xcworkspace</string>
+	<string>GearMaker/GearMaker.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>91CDB335-0DBB-47D0-8462-0D7C1A6276E5</key>
+		<key>A7EE266C132489CFD398A4B8827160D0D3DC1E57</key>
 		<string>../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/timknapen/GearMaker.git</string>
 	<key>IDESourceControlProjectVersion</key>
-	<integer>110</integer>
+	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>91CDB335-0DBB-47D0-8462-0D7C1A6276E5</string>
+	<string>A7EE266C132489CFD398A4B8827160D0D3DC1E57</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>91CDB335-0DBB-47D0-8462-0D7C1A6276E5</string>
+			<string>A7EE266C132489CFD398A4B8827160D0D3DC1E57</string>
 			<key>IDESourceControlWCCName</key>
 			<string>GearMaker</string>
 		</dict>

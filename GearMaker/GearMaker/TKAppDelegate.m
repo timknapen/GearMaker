@@ -239,4 +239,20 @@ scale, rotation;
 }
 
 
+#pragma mark Textview Delegate
+
+// kill autocompletion!
+-(NSArray *) control:(NSControl *)control
+			textView:(NSTextView *)textView
+		 completions:(NSArray *)words
+ forPartialWordRange:(NSRange)charRange
+ indexOfSelectedItem:(NSInteger *)index{
+	
+	//NSLog(@" control completion called by %@", [textView string]);
+	
+	return [NSArray array];
+}
+
+
+
 @end

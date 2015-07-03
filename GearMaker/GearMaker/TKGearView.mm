@@ -292,11 +292,33 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	[pitchCircle lineToPoint:NSMakePoint(pitchRadiusA + .5f, pitchRadiusA)];
 	
 	// center A
-	[pitchCircle moveToPoint:NSMakePoint(0, -.5f)];
-	[pitchCircle lineToPoint:NSMakePoint(0, .5f)];
-	[pitchCircle moveToPoint:NSMakePoint( -.5f, 0)];
-	[pitchCircle lineToPoint:NSMakePoint( .5f, 0)];
+	NSBezierPath * centerA = [NSBezierPath bezierPath];
+	[centerA moveToPoint:NSMakePoint(0, -.5f)];
+	[centerA lineToPoint:NSMakePoint(0, .5f)];
+	[centerA moveToPoint:NSMakePoint( -.5f, 0)];
+	[centerA lineToPoint:NSMakePoint( .5f, 0)];
+	[centerA moveToPoint:NSMakePoint( 0, appDel.gearAHoleDiam/2 + 1)];
+	[centerA lineToPoint:NSMakePoint( 0, pitchRadiusA)];
+	[centerA transformUsingAffineTransform:rotation];
 	
+	
+	// translation gear B
+	NSAffineTransform * translationGearB = [NSAffineTransform transform];
+	[translationGearB translateXBy:0 yBy:pitchRadiusB + pitchRadiusA];
+	
+	// center B
+	NSBezierPath * centerB = [NSBezierPath bezierPath];
+	[centerB moveToPoint:NSMakePoint(0, -.5f)];
+	[centerB lineToPoint:NSMakePoint(0, .5f)];
+	[centerB moveToPoint:NSMakePoint( -.5f, 0)];
+	[centerB lineToPoint:NSMakePoint( .5f, 0)];
+
+	[centerB moveToPoint:NSMakePoint( 0, appDel.gearBHoleDiam/2 + 1)];
+	[centerB lineToPoint:NSMakePoint( 0, pitchRadiusB)];
+	[centerB transformUsingAffineTransform:rotationB];
+	[centerB transformUsingAffineTransform:translationGearB];
+	
+
 	// show distance
 	[pitchCircle moveToPoint:NSMakePoint( 2 - .5f, 0)];
 	[pitchCircle lineToPoint:NSMakePoint( 2 + .5f, 0)];
@@ -304,16 +326,19 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	[pitchCircle lineToPoint:NSMakePoint( 2, pitchRadiusA + pitchRadiusB )];
 	[pitchCircle lineToPoint:NSMakePoint( 2 - .5f, pitchRadiusA + pitchRadiusB )];
 	[pitchCircle lineToPoint:NSMakePoint( 2 + .5f, pitchRadiusA + pitchRadiusB )];
+	
 
 	// gear B
 	[pitchCircle appendBezierPathWithOvalInRect:NSMakeRect(-pitchRadiusB,
 														   pitchRadiusA + pitchRadiusB -pitchRadiusB,
 														   2*pitchRadiusB,
 														   2*pitchRadiusB)];
-	[pitchCircle moveToPoint:NSMakePoint(0, pitchRadiusA + pitchRadiusB - .5f)];
+	/*
+	 [pitchCircle moveToPoint:NSMakePoint(0, pitchRadiusA + pitchRadiusB - .5f)];
 	[pitchCircle lineToPoint:NSMakePoint(0, pitchRadiusA + pitchRadiusB + .5f)];
 	[pitchCircle moveToPoint:NSMakePoint( -.5f, pitchRadiusA + pitchRadiusB)];
 	[pitchCircle lineToPoint:NSMakePoint( .5f, pitchRadiusA + pitchRadiusB)];
+	*/
 	[pitchCircle moveToPoint:NSMakePoint(pitchRadiusB - .5f, pitchRadiusA + pitchRadiusB)];
 	[pitchCircle lineToPoint:NSMakePoint(pitchRadiusB + .5f, pitchRadiusA + pitchRadiusB)];
 	[pitchCircle moveToPoint:NSMakePoint(pitchRadiusB , pitchRadiusA + pitchRadiusB)];
@@ -321,6 +346,9 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	[pitchCircle moveToPoint:NSMakePoint(pitchRadiusB - .5f, pitchRadiusA)];
 	[pitchCircle lineToPoint:NSMakePoint(pitchRadiusB + .5f, pitchRadiusA)];
 	[pitchCircle appendBezierPath:pitchLine];
+	[pitchCircle appendBezierPath:centerA];
+	[pitchCircle appendBezierPath:centerB];
+	
 	[pitchCircle transformUsingAffineTransform:scaler];
 	[pitchCircle transformUsingAffineTransform:translation];
 	[pitchCircle setLineWidth:0.5f];
@@ -346,8 +374,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 	NSBezierPath * gearB = [NSBezierPath bezierPath];
 	[gearB appendBezierPath:self.gearPathB];
 	[gearB transformUsingAffineTransform:rotationB];
-	NSAffineTransform * translationGearB = [NSAffineTransform transform];
-	[translationGearB translateXBy:0 yBy:pitchRadiusB + pitchRadiusA];
+	
 	[gearB transformUsingAffineTransform:translationGearB];
 	[gearB transformUsingAffineTransform:scaler];
 	[gearB transformUsingAffineTransform:translation];
@@ -489,6 +516,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 																				-appDel.gearAHoleDiam/2,
 																				appDel.gearAHoleDiam,
 																				appDel.gearAHoleDiam)];
+	
 	holePath = [holePath bezierPathByReversingPath];
 	[gear appendBezierPath:holePath];
 	
@@ -510,6 +538,7 @@ void applyfillet( std::vector <ofxVec2f> *pts, float fillet){
 																				-appDel.gearBHoleDiam/2,
 																				appDel.gearBHoleDiam,
 																				appDel.gearBHoleDiam)];
+	
 	holePath = [holePath bezierPathByReversingPath];
 	[gear appendBezierPath:holePath];
 	
